@@ -1,22 +1,31 @@
 package com.divvi.backend.session;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 public class SplitSession {
+
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Getter
+    @Setter
     @Column(nullable = false, unique = true)
     private String shareCode;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SessionStatus status;
 
+    @Getter
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -29,19 +38,4 @@ public class SplitSession {
         this.createdAt = Instant.now();
     }
 
-    public UUID getId() {
-        return this.id;
-    }
-
-    public String getShareCode() {
-        return this.shareCode;
-    }
-
-    public SessionStatus getStatus() {
-        return this.status;
-    }
-
-    public Instant getCreatedAt() {
-        return this.createdAt;
-    }
 }

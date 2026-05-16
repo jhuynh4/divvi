@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SplitSessionRepository extends JpaRepository<SplitSession, UUID>{
-    //Spring reads method name and automatically generates query
     Optional<SplitSession> findByShareCode(String shareCode);
+
+    boolean existsByShareCode(String shareCode);
 }
