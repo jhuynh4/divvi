@@ -1,8 +1,7 @@
 package com.divvi.backend.session;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.divvi.backend.session.dto.SessionResponse;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -14,7 +13,25 @@ public class SessionController {
     }
 
     @PostMapping
-    public SplitSession createSession() {
-        return this.sessionService.createSession();
+    public SessionResponse createSession() {
+        SplitSession session = sessionService.createSession();
+        return mapToResponse(session);
+    }
+
+    @GetMapping("/{shareCode}")
+    public SessionResponse getSession(
+            @PathVariable String shareCode
+    ) {
+        SplitSession session = sessionService.getSessionByShareCode(shareCode);
+        return mapToResponse(session);
+    }
+
+    private SessionResponse mapToResponse(SplitSession session) {
+        return new SessionResponse(
+                session.getId(),
+                session.getShareCode(),
+                session.getStatus(),
+                session.getCreatedAt()
+        );
     }
 }
