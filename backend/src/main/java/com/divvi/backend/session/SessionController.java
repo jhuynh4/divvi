@@ -14,24 +14,14 @@ public class SessionController {
 
     @PostMapping
     public SessionResponse createSession() {
-        SplitSession session = sessionService.createSession();
-        return mapToResponse(session);
+        return sessionService.createSession();
     }
 
     @GetMapping("/{shareCode}")
     public SessionResponse getSession(
             @PathVariable String shareCode
     ) {
-        SplitSession session = sessionService.getSessionByShareCode(shareCode);
-        return mapToResponse(session);
+        return sessionService.getSessionByShareCode(shareCode);
     }
 
-    private SessionResponse mapToResponse(SplitSession session) {
-        return new SessionResponse(
-                session.getId(),
-                session.getShareCode(),
-                session.getStatus(),
-                session.getCreatedAt()
-        );
-    }
 }
