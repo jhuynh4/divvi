@@ -1,13 +1,27 @@
 import {useParams} from "react-router-dom";
-import {useQuery} from "@tanstack/react-query";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {Container, VStack} from "@chakra-ui/react";
 
-import {getSession} from "../api/sessionApi";
+import {getSession, joinSession} from "../api/sessionApi";
+import {SessionHeader} from "../features/session/components/SessionHeader";
+import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
+import {JoinSession} from "../features/session/components/JoinSession.tsx";
 
 function SessionPage() {
     const {shareCode} = useParams();
+    const queryClient = useQueryClient();
     const sessionQuery = useQuery({
         queryKey: ['session', shareCode],
         queryFn: () => getSession(shareCode!),
+    });
+    const joinSessionMutation = useMutation({
+        mutationFn: (displayName: string) =>
+            joinSession(shareCode!, displayName),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["session", shareCode],
+            });
+        },
     });
     if (sessionQuery.isPending) {
         return <div>Loading...</div>;
@@ -16,12 +30,25 @@ function SessionPage() {
         return <div>Error loading session</div>;
     }
     return (
-        <div>
-            <h1>Session Page</h1>
-            <pre>
-                {JSON.stringify(sessionQuery.data, null, 2)}
-            </pre>
-        </div>
+        <Container
+            maxW="md"
+            py={6}
+            px={4}
+        >
+            <VStack gap={6} align="stretch">
+                <SessionHeader
+                    sessionCode={sessionQuery.data.shareCode}
+                />
+                <ParticipantList
+                    participants={sessionQuery.data.participants}
+                />
+                <JoinSession
+                    onJoin={(name) => {
+                        joinSessionMutation.mutate(name);
+                    }}
+                />
+            </VStack>
+        </Container>
     );
 }
 
