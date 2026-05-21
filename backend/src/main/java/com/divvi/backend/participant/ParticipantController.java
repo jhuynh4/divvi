@@ -4,6 +4,7 @@ import com.divvi.backend.participant.dto.JoinSessionRequest;
 import com.divvi.backend.participant.dto.ParticipantResponse;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("api/sessions")
 public class ParticipantController {
