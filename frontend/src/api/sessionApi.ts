@@ -124,3 +124,77 @@ export async function deleteReceiptItem(
     }
 }
 
+export async function getAssignments(shareCode: string) {
+    const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/assignments`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch assignments");
+    }
+
+    return response.json();
+}
+
+export async function createAssignment(
+    shareCode: string,
+    itemId: string,
+    participantId: string,
+    sharePercentage: number
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/sessions/${shareCode}/items/${itemId}/assignments`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                participantId,
+                sharePercentage,
+            }),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to create assignment");
+    }
+
+    return response.json();
+}
+
+export async function deleteAssignment(
+    shareCode: string,
+    assignmentId: string
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/sessions/${shareCode}/assignments/${assignmentId}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to delete assignment");
+    }
+}
+
+export async function getSummary(shareCode: string) {
+    const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/summary`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch summary");
+    }
+
+    return response.json();
+}
+
+export async function completeSession(shareCode: string) {
+    const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/complete`, {
+        method: "PATCH",
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to complete session");
+    }
+
+    return response.json();
+}
