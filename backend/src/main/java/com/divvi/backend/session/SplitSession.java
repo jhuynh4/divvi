@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,6 +29,16 @@ public class SplitSession {
     @Getter
     @Column(nullable = false)
     private Instant createdAt;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private BigDecimal tipAmount = BigDecimal.ZERO;
 
     protected SplitSession(){
     }
