@@ -9,8 +9,10 @@ import com.divvi.backend.receiptitem.ReceiptItemRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,20 +34,24 @@ public class ItemAssignmentService {
         this.participantRepository = participantRepository;
     }
 
+    @Transactional
     public ItemAssignmentResponse assignParticipantToItem(
             String shareCode,
             UUID itemId,
             CreateItemAssignmentRequest request
     ) {
-        ReceiptItem item = receiptItemRepository
+        ReceiptItem receiptItem = receiptItemRepository
                 .findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Receipt item not found"
                 ));
 
-        if (!item.getSession().getShareCode().equals(shareCode)) {
-            throw new RuntimeException("Receipt item does not belong to session");
+        if (!receiptItem.getSession().getShareCode().equals(shareCode)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Receipt item does not belong to session"
+            );
         }
 
         Participant participant = participantRepository
@@ -54,20 +60,41 @@ public class ItemAssignmentService {
                         HttpStatus.NOT_FOUND,
                         "Participant not found"
                 ));
+
         if (!participant.getSession().getShareCode().equals(shareCode)) {
-            throw new RuntimeException("Participant does not belong to session");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Participant does not belong to session"
+            );
         }
 
         ItemAssignment assignment = new ItemAssignment(
-                item,
+                receiptItem,
                 participant,
-                request.sharePercentage()
+                BigDecimal.ZERO
         );
 
-        ItemAssignment savedAssignment = itemAssignmentRepository.save(assignment);
-        return mapToResponse(savedAssignment);
+        itemAssignmentRepository.save(assignment);
+
+        rebalanceAssignments(itemId);
+
+        return mapToResponse(assignment);
     }
 
+    private void rebalanceAssignments(UUID receiptItemId) {
+        List<ItemAssignment> assignments =
+                itemAssignmentRepository.findByReceiptItemId(receiptItemId);
+
+        if (assignments.isEmpty()) {
+            return;
+        }
+
+        BigDecimal share = BigDecimal.valueOf(100.0 / assignments.size());
+
+        assignments.forEach(assignment -> assignment.setSharePercentage(share));
+
+        itemAssignmentRepository.saveAll(assignments);
+    }
     public List<ItemAssignmentResponse> getAssignmentsForSession(String shareCode) {
         return itemAssignmentRepository
                 .findByReceiptItemSessionShareCode(shareCode)
@@ -76,21 +103,27 @@ public class ItemAssignmentService {
                 .toList();
     }
 
-    public void removeAssignment(
-            String shareCode,
-            UUID assignmentId
-    ) {
+    @Transactional
+    public void removeAssignment(String shareCode, UUID assignmentId) {
         ItemAssignment assignment = itemAssignmentRepository
                 .findById(assignmentId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Assignment not found"
                 ));
+
         if (!assignment.getReceiptItem().getSession().getShareCode().equals(shareCode)) {
-            throw new RuntimeException("Assignment does not belong to session");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Assignment does not belong to session"
+            );
         }
 
+        UUID receiptItemId = assignment.getReceiptItem().getId();
+
         itemAssignmentRepository.delete(assignment);
+
+        rebalanceAssignments(receiptItemId);
     }
 
     private ItemAssignmentResponse mapToResponse(ItemAssignment assignment) {

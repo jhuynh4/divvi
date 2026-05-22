@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 @RestController
 @RequestMapping("/api/sessions/{shareCode}")
+@CrossOrigin(origins = "http://localhost:5173")
 public class ItemAssignmentController {
     private final ItemAssignmentService itemAssignmentService;
 
