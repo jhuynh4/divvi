@@ -3,6 +3,7 @@ package com.divvi.backend.session.dto;
 import com.divvi.backend.participant.dto.ParticipantResponse;
 import com.divvi.backend.session.SessionStatus;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -12,5 +13,7 @@ public record SessionResponse(
         String shareCode,
         SessionStatus status,
         Instant createdAt,
+        BigDecimal taxAmount,
+        BigDecimal tipAmount,
         List<ParticipantResponse> participants
 ) {}

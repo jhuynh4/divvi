@@ -3,6 +3,7 @@ package com.divvi.backend.session;
 import com.divvi.backend.participant.ParticipantRepository;
 import com.divvi.backend.participant.dto.ParticipantResponse;
 import com.divvi.backend.session.dto.SessionResponse;
+import com.divvi.backend.session.dto.UpdateSessionRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -64,6 +65,22 @@ public class SessionService {
         return mapToResponse(session);
     }
 
+    public SessionResponse updateSession(
+            String shareCode,
+            UpdateSessionRequest request
+    ) {
+        SplitSession session = sessionRepository
+                .findByShareCode(shareCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        session.setTaxAmount(request.taxAmount());
+        session.setTipAmount(request.tipAmount());
+
+        SplitSession updatedSession = sessionRepository.save(session);
+
+        return mapToResponse(updatedSession);
+    }
+
     private SessionResponse mapToResponse(SplitSession session) {
         List<ParticipantResponse> participants = participantRepository
                 .findBySessionShareCode(session.getShareCode())
@@ -78,6 +95,8 @@ public class SessionService {
                 session.getShareCode(),
                 session.getStatus(),
                 session.getCreatedAt(),
+                session.getTaxAmount(),
+                session.getTipAmount(),
                 participants
         );
     }
