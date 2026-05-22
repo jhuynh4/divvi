@@ -176,3 +176,25 @@ export async function deleteAssignment(
         throw new Error("Failed to delete assignment");
     }
 }
+
+export async function getSummary(shareCode: string) {
+    const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/summary`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch summary");
+    }
+
+    return response.json();
+}
+
+export async function completeSession(shareCode: string) {
+    const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/complete`, {
+        method: "PATCH",
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to complete session");
+    }
+
+    return response.json();
+}

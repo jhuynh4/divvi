@@ -33,4 +33,9 @@ public class SessionController {
     ) {
         return sessionService.updateSession(shareCode, request);
     }
+
+    @PatchMapping("/{shareCode}/complete")
+    public SessionResponse settleSession(@PathVariable String shareCode) {
+        return sessionService.settleSession(shareCode);
+    }
 }
