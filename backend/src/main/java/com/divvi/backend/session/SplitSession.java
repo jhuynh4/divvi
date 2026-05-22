@@ -22,6 +22,7 @@ public class SplitSession {
     private String shareCode;
 
     @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SessionStatus status;
