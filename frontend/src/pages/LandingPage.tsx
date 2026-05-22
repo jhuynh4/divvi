@@ -20,13 +20,19 @@ function LandingPage() {
     }
 
     function handleUploadReceipt() {
-        // Coming later: navigate to receipt builder/upload flow
-        console.log("Upload receipt coming soon");
+        createSessionMutation.mutate(undefined, {
+            onSuccess: (data) => {
+                navigate(`/receipt/${data.shareCode}?mode=upload`);
+            },
+        });
     }
 
     function handleEnterManually() {
-        // Coming later: navigate to receipt builder/manual flow
-        console.log("Manual receipt entry coming soon");
+        createSessionMutation.mutate(undefined, {
+            onSuccess: (data) => {
+                navigate(`/receipt/${data.shareCode}?mode=manual`);
+            },
+        });
     }
 
     return (
