@@ -81,6 +81,18 @@ public class SessionService {
         return mapToResponse(updatedSession);
     }
 
+    public SessionResponse settleSession(String shareCode) {
+        SplitSession session = sessionRepository
+                .findByShareCode(shareCode)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Session not found"
+                ));
+
+        session.setStatus(SessionStatus.COMPLETED);
+
+        return mapToResponse(sessionRepository.save(session));
+    }
     private SessionResponse mapToResponse(SplitSession session) {
         List<ParticipantResponse> participants = participantRepository
                 .findBySessionShareCode(session.getShareCode())

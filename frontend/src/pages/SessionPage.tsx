@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Container, VStack} from "@chakra-ui/react";
 
@@ -9,6 +9,7 @@ import {JoinSession} from "../features/session/components/JoinSession.tsx";
 
 function SessionPage() {
     const {shareCode} = useParams();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const sessionQuery = useQuery({
         queryKey: ['session', shareCode],
@@ -21,6 +22,7 @@ function SessionPage() {
             queryClient.invalidateQueries({
                 queryKey: ["session", shareCode],
             });
+            navigate(`/workspace/${shareCode}`);
         },
     });
     if (sessionQuery.isPending) {

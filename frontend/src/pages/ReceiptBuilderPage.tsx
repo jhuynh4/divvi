@@ -100,13 +100,17 @@ function ReceiptBuilderPage() {
             queryClient.invalidateQueries({ queryKey: ["receiptItems", shareCode] });
         },
     });
-
+    const returnTo = searchParams.get("returnTo");
     const updateSessionMutation = useMutation({
         mutationFn: (data: { taxAmount: number; tipAmount: number }) =>
             updateSession(shareCode!, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["session", shareCode] });
-            navigate(`/session/${shareCode}`);
+            if (returnTo === "workspace") {
+                navigate(`/workspace/${shareCode}`);
+            } else {
+                navigate(`/session/${shareCode}`);
+            }
         },
     });
 

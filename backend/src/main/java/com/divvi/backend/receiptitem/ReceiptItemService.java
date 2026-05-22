@@ -1,12 +1,14 @@
 package com.divvi.backend.receiptitem;
 
 
+import com.divvi.backend.itemassignment.ItemAssignmentRepository;
 import com.divvi.backend.receiptitem.dto.CreateReceiptItemRequest;
 import com.divvi.backend.receiptitem.dto.ReceiptItemResponse;
 import com.divvi.backend.receiptitem.dto.UpdateReceiptItemRequest;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,9 +20,17 @@ public class ReceiptItemService {
     private final ReceiptItemRepository receiptItemRepository;
 
     private final SplitSessionRepository splitSessionRepository;
-    public ReceiptItemService(ReceiptItemRepository receiptItemRepository, SplitSessionRepository splitSessionRepository) {
+
+    private final ItemAssignmentRepository itemAssignmentRepository;
+
+    public ReceiptItemService(
+            ReceiptItemRepository receiptItemRepository,
+            SplitSessionRepository splitSessionRepository,
+            ItemAssignmentRepository itemAssignmentRepository
+    ) {
         this.receiptItemRepository = receiptItemRepository;
         this.splitSessionRepository = splitSessionRepository;
+        this.itemAssignmentRepository = itemAssignmentRepository;
     }
 
     public ReceiptItemResponse createReceiptItem(String shareCode, CreateReceiptItemRequest request) {
@@ -78,6 +88,7 @@ public class ReceiptItemService {
         );
     }
 
+    @Transactional
     public void deleteReceiptItem(
             String shareCode,
             UUID receiptItemId
@@ -90,6 +101,7 @@ public class ReceiptItemService {
             throw new RuntimeException("Receipt item does not belong to session");
         }
 
+        itemAssignmentRepository.deleteByReceiptItemId(receiptItemId);
         receiptItemRepository.delete(item);
     }
 }
