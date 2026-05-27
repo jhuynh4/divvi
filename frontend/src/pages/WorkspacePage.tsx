@@ -337,26 +337,35 @@ function WorkspacePage() {
                                 justify="space-between"
                             >
                                 <HStack gap="-2">
-                                    {participants
-                                        .slice(0, 4)
-                                        .map((participant, index) => (
-                                            <Avatar.Root
-                                                key={participant.id}
-                                                size="xs"
-                                                bg={
-                                                    PARTICIPANT_COLORS[
-                                                    index % PARTICIPANT_COLORS.length
-                                                        ]
-                                                }
-                                                borderWidth="2px"
-                                                borderColor="white"
-                                            >
-                                                <Avatar.Fallback
-                                                    name={participant.displayName}
-                                                    color="white"
-                                                />
-                                            </Avatar.Root>
-                                        ))}
+                                    {participants.slice(0, 7).map((participant, index) => (
+                                        <Avatar.Root
+                                            key={participant.id}
+                                            size="xs"
+                                            bg={PARTICIPANT_COLORS[index % PARTICIPANT_COLORS.length]}
+                                            borderWidth="2px"
+                                            borderColor="white"
+                                        >
+                                            <Avatar.Fallback name={participant.displayName} color="white" />
+                                        </Avatar.Root>
+                                    ))}
+
+                                    {participants.length > 7 && (
+                                        <Box
+                                            bg="gray.200"
+                                            color="gray.700"
+                                            borderRadius="full"
+                                            w="8"
+                                            h="8"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            fontSize="xs"
+                                            borderWidth="2px"
+                                            borderColor="white"
+                                        >
+                                            +{participants.length - 7}
+                                        </Box>
+                                    )}
                                 </HStack>
 
                                 <Text
