@@ -12,17 +12,10 @@ import {
 } from "@chakra-ui/react";
 import {ArrowLeft, Check, CheckCircle2} from "lucide-react";
 
-import { getSummary, completeSession } from "../api/sessionApi";
 
-const PARTICIPANT_COLORS = [
-    "#10b981",
-    "#3b82f6",
-    "#8b5cf6",
-    "#f59e0b",
-    "#ec4899",
-    "#14b8a6",
-    "#f97316",
-];
+import { getSummary, completeSession } from "../api/sessionApi";
+import { useSessionSocket } from "../hooks/useSessionSocket";
+import { getParticipantColor} from "../utils/participantColors.ts";
 
 interface ParticipantSummary {
     participantId: string;
@@ -52,6 +45,7 @@ function SummaryPage() {
         queryFn: () => getSummary(shareCode!),
     });
 
+    useSessionSocket(shareCode);
     const completeSessionMutation = useMutation({
         mutationFn: () => completeSession(shareCode!),
         onSuccess: () => {
@@ -135,7 +129,7 @@ function SummaryPage() {
                                 Individual Totals
                             </Text>
 
-                            {summary.participants.map((participant, index) => (
+                            {summary.participants.map((participant) => (
                                 <Box
                                     key={participant.participantId}
                                     bg="white"
@@ -150,7 +144,7 @@ function SummaryPage() {
                                             <HStack gap="3">
                                                 <Avatar.Root
                                                     size="sm"
-                                                    bg={PARTICIPANT_COLORS[index % PARTICIPANT_COLORS.length]}
+                                                    bg={getParticipantColor(participant.participantId)}
                                                     borderWidth="2px"
                                                     borderColor="white"
                                                 >
