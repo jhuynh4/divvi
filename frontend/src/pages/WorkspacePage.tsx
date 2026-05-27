@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
+import { getParticipantColor } from "../utils/participantColors";
 import {
     Box,
     Container,
@@ -31,15 +32,6 @@ import {
     deleteAssignment,
 } from "../api/sessionApi";
 
-const PARTICIPANT_COLORS = [
-    "#10b981",
-    "#3b82f6",
-    "#8b5cf6",
-    "#f59e0b",
-    "#ec4899",
-    "#14b8a6",
-    "#f97316",
-];
 
 interface Participant {
     id: string;
@@ -337,11 +329,11 @@ function WorkspacePage() {
                                 justify="space-between"
                             >
                                 <HStack gap="-2">
-                                    {participants.slice(0, 7).map((participant, index) => (
+                                    {participants.slice(0, 7).map((participant) => (
                                         <Avatar.Root
                                             key={participant.id}
                                             size="xs"
-                                            bg={PARTICIPANT_COLORS[index % PARTICIPANT_COLORS.length]}
+                                            bg={getParticipantColor(participant.id)}
                                             borderWidth="2px"
                                             borderColor="white"
                                         >
@@ -581,8 +573,7 @@ function WorkspacePage() {
                                                     >
                                                         {participants.map(
                                                             (
-                                                                participant,
-                                                                index
+                                                                participant
                                                             ) => {
                                                                 const existingAssignment =
                                                                     itemAssignments.find(
@@ -617,10 +608,7 @@ function WorkspacePage() {
                                                                         }
                                                                         bg={
                                                                             isAssigned
-                                                                                ? PARTICIPANT_COLORS[
-                                                                                index %
-                                                                                PARTICIPANT_COLORS.length
-                                                                                    ]
+                                                                                ? getParticipantColor(participant.id)
                                                                                 : "white"
                                                                         }
                                                                         color={
@@ -630,10 +618,7 @@ function WorkspacePage() {
                                                                         }
                                                                         borderColor={
                                                                             isAssigned
-                                                                                ? PARTICIPANT_COLORS[
-                                                                                index %
-                                                                                PARTICIPANT_COLORS.length
-                                                                                    ]
+                                                                                ? getParticipantColor(participant.id)
                                                                                 : "gray.300"
                                                                         }
                                                                         borderRadius="full"
