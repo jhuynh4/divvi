@@ -31,7 +31,7 @@ export function useSessionSocket(shareCode?: string) {
                         queryClient.invalidateQueries({ queryKey: ["assignments", shareCode] });
                     }
 
-                    if (event.type == "SESSION_UPDATED") {
+                    if (event.type == "SESSION_UPDATED" || event.type == "PARTICIPANTS_UPDATED") {
                         queryClient.invalidateQueries(({ queryKey: ["session", shareCode] }));
                     }
                 });
