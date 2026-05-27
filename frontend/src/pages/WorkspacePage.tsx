@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSessionSocket } from "../hooks/useSessionSocket";
 import {
     Box,
     Container,
@@ -63,6 +64,8 @@ function WorkspacePage() {
     const { shareCode } = useParams<{ shareCode: string }>();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    useSessionSocket(shareCode);
 
     const [itemName, setItemName] = useState("");
     const [itemPrice, setItemPrice] = useState("");
