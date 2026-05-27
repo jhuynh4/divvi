@@ -12,7 +12,9 @@ import {
 } from "@chakra-ui/react";
 import {ArrowLeft, Check, CheckCircle2} from "lucide-react";
 
+
 import { getSummary, completeSession } from "../api/sessionApi";
+import { useSessionSocket } from "../hooks/useSessionSocket";
 
 const PARTICIPANT_COLORS = [
     "#10b981",
@@ -52,6 +54,7 @@ function SummaryPage() {
         queryFn: () => getSummary(shareCode!),
     });
 
+    useSessionSocket(shareCode);
     const completeSessionMutation = useMutation({
         mutationFn: () => completeSession(shareCode!),
         onSuccess: () => {

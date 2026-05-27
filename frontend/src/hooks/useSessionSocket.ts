@@ -24,15 +24,25 @@ export function useSessionSocket(shareCode?: string) {
                         queryClient.invalidateQueries({
                             queryKey: ["assignments", shareCode],
                         });
+
+                        queryClient.invalidateQueries({
+                            queryKey: ["summary", shareCode],
+                        });
                     }
 
                     if (event.type === "ITEMS_UPDATED") {
                         queryClient.invalidateQueries({ queryKey: ["receiptItems", shareCode] });
                         queryClient.invalidateQueries({ queryKey: ["assignments", shareCode] });
+                        queryClient.invalidateQueries({
+                            queryKey: ["summary", shareCode],
+                        });
                     }
 
                     if (event.type == "SESSION_UPDATED" || event.type == "PARTICIPANTS_UPDATED") {
                         queryClient.invalidateQueries(({ queryKey: ["session", shareCode] }));
+                        queryClient.invalidateQueries({
+                            queryKey: ["summary", shareCode],
+                        });
                     }
                 });
             },
