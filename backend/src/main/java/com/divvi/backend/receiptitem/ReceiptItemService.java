@@ -7,12 +7,15 @@ import com.divvi.backend.receiptitem.dto.ReceiptItemResponse;
 import com.divvi.backend.receiptitem.dto.UpdateReceiptItemRequest;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
+import com.divvi.backend.websocket.SessionEventPublisher;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.math.BigDecimal;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,16 +26,20 @@ public class ReceiptItemService {
 
     private final ItemAssignmentRepository itemAssignmentRepository;
 
+    private final SessionEventPublisher sessionEventPublisher;
+
     public ReceiptItemService(
             ReceiptItemRepository receiptItemRepository,
             SplitSessionRepository splitSessionRepository,
-            ItemAssignmentRepository itemAssignmentRepository
-    ) {
+            ItemAssignmentRepository itemAssignmentRepository,
+            SessionEventPublisher sessionEventPublisher) {
         this.receiptItemRepository = receiptItemRepository;
         this.splitSessionRepository = splitSessionRepository;
         this.itemAssignmentRepository = itemAssignmentRepository;
+        this.sessionEventPublisher = sessionEventPublisher;
     }
 
+    @Transactional
     public ReceiptItemResponse createReceiptItem(String shareCode, CreateReceiptItemRequest request) {
         SplitSession session = splitSessionRepository
                 .findByShareCode(shareCode)
@@ -44,7 +51,7 @@ public class ReceiptItemService {
                 session
         );
         receiptItemRepository.save(savedItem);
-
+        publishItemsUpdatedAfterCommit(shareCode);
         return new ReceiptItemResponse(
                 savedItem.getId(),
                 savedItem.getName(),
@@ -63,6 +70,7 @@ public class ReceiptItemService {
                 .toList();
     }
 
+    @Transactional
     public ReceiptItemResponse updateReceiptItem(
             String shareCode,
             UUID receiptItemId,
@@ -80,7 +88,7 @@ public class ReceiptItemService {
         item.setPrice(request.price());
 
         ReceiptItem updatedItem = receiptItemRepository.save(item);
-
+        publishItemsUpdatedAfterCommit(shareCode);
         return new ReceiptItemResponse(
                 updatedItem.getId(),
                 updatedItem.getName(),
@@ -103,5 +111,20 @@ public class ReceiptItemService {
 
         itemAssignmentRepository.deleteByReceiptItemId(receiptItemId);
         receiptItemRepository.delete(item);
+        publishItemsUpdatedAfterCommit(shareCode);
+    }
+
+    private void publishItemsUpdatedAfterCommit(String shareCode) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        sessionEventPublisher.publish(
+                                shareCode,
+                                "ITEMS_UPDATED"
+                        );
+                    }
+                }
+        );
     }
 }
