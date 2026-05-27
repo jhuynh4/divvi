@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSessionSocket } from "../hooks/useSessionSocket";
+import { getParticipantColor } from "../utils/participantColors";
 import {
     Box,
     Container,
@@ -30,15 +32,6 @@ import {
     deleteAssignment,
 } from "../api/sessionApi";
 
-const PARTICIPANT_COLORS = [
-    "#10b981",
-    "#3b82f6",
-    "#8b5cf6",
-    "#f59e0b",
-    "#ec4899",
-    "#14b8a6",
-    "#f97316",
-];
 
 interface Participant {
     id: string;
@@ -63,6 +56,8 @@ function WorkspacePage() {
     const { shareCode } = useParams<{ shareCode: string }>();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    useSessionSocket(shareCode);
 
     const [itemName, setItemName] = useState("");
     const [itemPrice, setItemPrice] = useState("");
@@ -334,26 +329,35 @@ function WorkspacePage() {
                                 justify="space-between"
                             >
                                 <HStack gap="-2">
-                                    {participants
-                                        .slice(0, 4)
-                                        .map((participant, index) => (
-                                            <Avatar.Root
-                                                key={participant.id}
-                                                size="xs"
-                                                bg={
-                                                    PARTICIPANT_COLORS[
-                                                    index % PARTICIPANT_COLORS.length
-                                                        ]
-                                                }
-                                                borderWidth="2px"
-                                                borderColor="white"
-                                            >
-                                                <Avatar.Fallback
-                                                    name={participant.displayName}
-                                                    color="white"
-                                                />
-                                            </Avatar.Root>
-                                        ))}
+                                    {participants.slice(0, 7).map((participant) => (
+                                        <Avatar.Root
+                                            key={participant.id}
+                                            size="xs"
+                                            bg={getParticipantColor(participant.id)}
+                                            borderWidth="2px"
+                                            borderColor="white"
+                                        >
+                                            <Avatar.Fallback name={participant.displayName} color="white" />
+                                        </Avatar.Root>
+                                    ))}
+
+                                    {participants.length > 7 && (
+                                        <Box
+                                            bg="gray.200"
+                                            color="gray.700"
+                                            borderRadius="full"
+                                            w="8"
+                                            h="8"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            fontSize="xs"
+                                            borderWidth="2px"
+                                            borderColor="white"
+                                        >
+                                            +{participants.length - 7}
+                                        </Box>
+                                    )}
                                 </HStack>
 
                                 <Text
@@ -569,8 +573,7 @@ function WorkspacePage() {
                                                     >
                                                         {participants.map(
                                                             (
-                                                                participant,
-                                                                index
+                                                                participant
                                                             ) => {
                                                                 const existingAssignment =
                                                                     itemAssignments.find(
@@ -605,10 +608,7 @@ function WorkspacePage() {
                                                                         }
                                                                         bg={
                                                                             isAssigned
-                                                                                ? PARTICIPANT_COLORS[
-                                                                                index %
-                                                                                PARTICIPANT_COLORS.length
-                                                                                    ]
+                                                                                ? getParticipantColor(participant.id)
                                                                                 : "white"
                                                                         }
                                                                         color={
@@ -618,10 +618,7 @@ function WorkspacePage() {
                                                                         }
                                                                         borderColor={
                                                                             isAssigned
-                                                                                ? PARTICIPANT_COLORS[
-                                                                                index %
-                                                                                PARTICIPANT_COLORS.length
-                                                                                    ]
+                                                                                ? getParticipantColor(participant.id)
                                                                                 : "gray.300"
                                                                         }
                                                                         borderRadius="full"

@@ -1,5 +1,5 @@
 import { Box, VStack, HStack, Text, Badge, Circle } from "@chakra-ui/react";
-
+import { getParticipantColor } from "../../../utils/participantColors.ts";
 interface Participant {
     id: string;
     displayName: string;
@@ -8,8 +8,6 @@ interface Participant {
 interface ParticipantListProps {
     participants: Participant[];
 }
-
-const avatarColors = ["green.400", "blue.400", "purple.400", "orange.400"];
 
 export function ParticipantList({ participants }: ParticipantListProps) {
     const getInitials = (name: string) => {
@@ -61,7 +59,7 @@ export function ParticipantList({ participants }: ParticipantListProps) {
                             >
                                 <Circle
                                     size="40px"
-                                    bg={avatarColors[index % avatarColors.length]}
+                                    bg={getParticipantColor(participant.id)}
                                     color="white"
                                     fontWeight="bold"
                                     fontSize="sm"
