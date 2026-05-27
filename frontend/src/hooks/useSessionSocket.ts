@@ -30,6 +30,10 @@ export function useSessionSocket(shareCode?: string) {
                         queryClient.invalidateQueries({ queryKey: ["receiptItems", shareCode] });
                         queryClient.invalidateQueries({ queryKey: ["assignments", shareCode] });
                     }
+
+                    if (event.type == "SESSION_UPDATED") {
+                        queryClient.invalidateQueries(({ queryKey: ["session", shareCode] }));
+                    }
                 });
             },
         });

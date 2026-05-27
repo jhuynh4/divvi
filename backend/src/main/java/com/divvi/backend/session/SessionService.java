@@ -4,9 +4,14 @@ import com.divvi.backend.participant.ParticipantRepository;
 import com.divvi.backend.participant.dto.ParticipantResponse;
 import com.divvi.backend.session.dto.SessionResponse;
 import com.divvi.backend.session.dto.UpdateSessionRequest;
+import com.divvi.backend.websocket.SessionEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -23,9 +28,15 @@ public class SessionService {
 
     private final ParticipantRepository participantRepository;
 
-    public SessionService(SplitSessionRepository sessionRepository, ParticipantRepository participantRepository) {
+    private final SessionEventPublisher sessionEventPublisher;
+    public SessionService(
+            SplitSessionRepository sessionRepository,
+            ParticipantRepository participantRepository,
+            SessionEventPublisher sessionEventPublisher
+    ) {
         this.sessionRepository = sessionRepository;
         this.participantRepository = participantRepository;
+        this.sessionEventPublisher = sessionEventPublisher;
     }
 
     public SessionResponse createSession() {
@@ -65,6 +76,7 @@ public class SessionService {
         return mapToResponse(session);
     }
 
+    @Transactional
     public SessionResponse updateSession(
             String shareCode,
             UpdateSessionRequest request
@@ -77,10 +89,11 @@ public class SessionService {
         session.setTipAmount(request.tipAmount());
 
         SplitSession updatedSession = sessionRepository.save(session);
-
+        publishSessionUpdatedAfterCommit(shareCode);
         return mapToResponse(updatedSession);
     }
 
+    @Transactional
     public SessionResponse settleSession(String shareCode) {
         SplitSession session = sessionRepository
                 .findByShareCode(shareCode)
@@ -90,9 +103,10 @@ public class SessionService {
                 ));
 
         session.setStatus(SessionStatus.COMPLETED);
-
+        publishSessionUpdatedAfterCommit(shareCode);
         return mapToResponse(sessionRepository.save(session));
     }
+
     private SessionResponse mapToResponse(SplitSession session) {
         List<ParticipantResponse> participants = participantRepository
                 .findBySessionShareCode(session.getShareCode())
@@ -110,6 +124,20 @@ public class SessionService {
                 session.getTaxAmount(),
                 session.getTipAmount(),
                 participants
+        );
+    }
+
+    private void publishSessionUpdatedAfterCommit(String shareCode) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        sessionEventPublisher.publish(
+                                shareCode,
+                                "SESSION_UPDATED"
+                        );
+                    }
+                }
         );
     }
 }
