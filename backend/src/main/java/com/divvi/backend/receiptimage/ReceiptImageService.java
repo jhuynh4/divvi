@@ -1,5 +1,7 @@
 package com.divvi.backend.receiptimage;
 
+import com.divvi.backend.ocr.OcrService;
+import com.divvi.backend.ocr.ReceiptParserService;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
@@ -18,10 +20,18 @@ public class ReceiptImageService{
 
     private final SplitSessionRepository sessionRepository;
 
+    private final OcrService ocrService;
+
+    private final ReceiptParserService receiptParserService;
+
     public ReceiptImageService(
-            SplitSessionRepository sessionRepository
+            SplitSessionRepository sessionRepository,
+            OcrService ocrService,
+            ReceiptParserService receiptParserService
     ){
         this.sessionRepository = sessionRepository;
+        this.ocrService = ocrService;
+        this.receiptParserService = receiptParserService;
     }
 
     public ReceiptImageUploadResponse uploadReceiptImage(
@@ -52,10 +62,14 @@ public class ReceiptImageService{
             Path storedPath = uploadDir.resolve(storedFileName);
             Files.copy(file.getInputStream(), storedPath);
 
+            var words = ocrService.extractWords(storedPath);
+            var items = receiptParserService.parseItemsFromWords(words);
+
             return new ReceiptImageUploadResponse(
                     originalFileName,
                     storedFileName,
-                    storedPath.toString()
+                    storedPath.toString(),
+                    items
             );
         } catch (IOException e) {
             throw new ResponseStatusException(
