@@ -6,11 +6,13 @@ import {getSession, joinSession} from "../api/sessionApi";
 import {SessionHeader} from "../features/session/components/SessionHeader";
 import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
+import {useSessionSocket} from "../hooks/useSessionSocket.ts";
 
 function SessionPage() {
     const {shareCode} = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    useSessionSocket(shareCode);
     const sessionQuery = useQuery({
         queryKey: ['session', shareCode],
         queryFn: () => getSession(shareCode!),
