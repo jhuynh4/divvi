@@ -7,6 +7,7 @@ import {SessionHeader} from "../features/session/components/SessionHeader";
 import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
 import {useSessionSocket} from "../hooks/useSessionSocket.ts";
+import {useEffect} from "react";
 
 function SessionPage() {
     const {shareCode} = useParams();
@@ -17,6 +18,11 @@ function SessionPage() {
         queryKey: ['session', shareCode],
         queryFn: () => getSession(shareCode!),
     });
+    useEffect(() => {
+        if (sessionQuery.data?.status === "COMPLETED") {
+            navigate(`/summary/${shareCode}`);
+        }
+    }, [sessionQuery.data, navigate, shareCode]);
     const joinSessionMutation = useMutation({
         mutationFn: (displayName: string) =>
             joinSession(shareCode!, displayName),

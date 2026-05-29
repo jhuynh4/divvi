@@ -4,7 +4,6 @@ import com.divvi.backend.session.dto.SessionResponse;
 import com.divvi.backend.session.dto.UpdateSessionRequest;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/sessions")
 public class SessionController {
