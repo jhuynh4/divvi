@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/ocr")
-@CrossOrigin(origins = "http://localhost:5173")
 public class OcrController {
 
     private final OcrService ocrService;
