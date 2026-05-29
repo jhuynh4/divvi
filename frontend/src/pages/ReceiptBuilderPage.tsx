@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -62,6 +62,12 @@ function ReceiptBuilderPage() {
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
     });
+
+    useEffect(() => {
+        if (sessionQuery.data?.status === "COMPLETED") {
+            navigate(`/summary/${shareCode}`);
+        }
+    }, [sessionQuery.data, navigate, shareCode]);
 
     const itemsQuery = useQuery({
         queryKey: ["receiptItems", shareCode],
@@ -187,6 +193,7 @@ function ReceiptBuilderPage() {
     if (itemsQuery.isError || sessionQuery.isError) {
         return <Box p="6">Error loading receipt.</Box>;
     }
+
 
     return (
         <Box minH="100vh" bgGradient="to-b" gradientFrom="gray.50" gradientTo="gray.100">

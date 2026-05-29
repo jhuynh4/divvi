@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
@@ -66,6 +66,11 @@ function WorkspacePage() {
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
     });
+    useEffect(() => {
+        if (sessionQuery.data?.status === "COMPLETED") {
+            navigate(`/summary/${shareCode}`);
+        }
+    }, [sessionQuery.data, navigate, shareCode]);
 
     const itemsQuery = useQuery({
         queryKey: ["receiptItems", shareCode],
