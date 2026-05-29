@@ -33,7 +33,7 @@ function UploadReceiptPage() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-
+    const [errorMessage, setErrorMessage] = useState("");
     function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
 
@@ -68,7 +68,10 @@ function UploadReceiptPage() {
             }
 
             navigate(`/receipt/${shareCode}?mode=upload`);
-        } finally {
+        } catch {
+            setErrorMessage("We couldn't extract this receipt. Try a clearer photo.");
+        }
+        finally {
             setIsProcessing(false);
         }
     }
@@ -228,7 +231,11 @@ function UploadReceiptPage() {
                                 </VStack>
                             </VStack>
                         </Box>
-
+                        {errorMessage && (
+                            <Text fontSize="sm" color="red.500" textAlign="center">
+                                {errorMessage}
+                            </Text>
+                        )}
                         {selectedImage && !isProcessing && (
                             <Button
                                 onClick={handleUploadAndExtract}
