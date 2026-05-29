@@ -80,6 +80,9 @@ function SummaryPage() {
                 <Box px="5" py="6" pb="8">
                     <VStack gap="6" align="stretch">
                         <HStack justify="space-between">
+                            {isSettled ? (
+                                <Box w="20" />
+                            ) : (
                             <Button
                                 onClick={() => navigate(`/workspace/${shareCode}`)}
                                 variant="ghost"
@@ -89,6 +92,7 @@ function SummaryPage() {
                                 <ArrowLeft size={20} />
                                 <Text>Back</Text>
                             </Button>
+                            )}
 
                             <Text fontSize="2xl" fontWeight="medium" letterSpacing="tight">
                                 Summary
