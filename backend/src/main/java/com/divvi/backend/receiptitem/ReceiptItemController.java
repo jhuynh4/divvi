@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/sessions/{shareCode}/items")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ReceiptItemController {
     private final ReceiptItemService receiptItemService;
 
