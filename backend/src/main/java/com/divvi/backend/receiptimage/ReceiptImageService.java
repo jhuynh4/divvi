@@ -5,6 +5,7 @@ import com.divvi.backend.ocr.ReceiptParserService;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +46,7 @@ public class ReceiptImageService{
                         "Session not found"
                 ));
 
+
         if (file.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -52,6 +54,22 @@ public class ReceiptImageService{
             );
         }
 
+        long maxFileSize = 5 * 1024 * 1024;
+        if (file.getSize() > maxFileSize) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Receipt image must be smaller than 5MB"
+            );
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only image uploads are allowed"
+            );
+        }
+        
         try {
             Path uploadDir = Path.of("uploads", "receipts");
 
