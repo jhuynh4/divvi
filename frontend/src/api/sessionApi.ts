@@ -198,3 +198,26 @@ export async function completeSession(shareCode: string) {
 
     return response.json();
 }
+
+export async function uploadReceiptImage(
+    shareCode: string,
+    file: File
+) {
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await fetch(
+        `${API_BASE_URL}/sessions/${shareCode}/receipt-image`,
+        {
+            method: "POST",
+            body: formData,
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to upload receipt image");
+    }
+
+    return response.json();
+}
