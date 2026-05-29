@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/sessions/{shareCode}/summary")
-@CrossOrigin(origins = "http://localhost:5173")
 public class SummaryController {
 
     private final SummaryService summaryService;
