@@ -172,6 +172,14 @@ function ReceiptBuilderPage() {
         });
     }
 
+    function handleBack() {
+        if (isUpload) {
+            navigate(`/session/${shareCode}/upload`);
+        } else {
+            navigate("/");
+        }
+    }
+
     if (itemsQuery.isPending || sessionQuery.isPending) {
         return <Box p="6">Loading receipt...</Box>;
     }
@@ -188,7 +196,7 @@ function ReceiptBuilderPage() {
                         <VStack gap="4" align="stretch">
                             <HStack justify="space-between">
                                 <Button
-                                    onClick={() => navigate("/")}
+                                    onClick={handleBack}
                                     variant="ghost"
                                     size="sm"
                                     color="gray.600"
@@ -248,10 +256,10 @@ function ReceiptBuilderPage() {
 
                                     <VStack gap="0.5" align="start" flex="1">
                                         <Text fontSize="sm" fontWeight="medium" color="blue.900">
-                                            Receipt upload coming soon
+                                            Receipt scanned
                                         </Text>
                                         <Text fontSize="xs" color="blue.600">
-                                            For now, add receipt items manually below.
+                                            Review and correct the extracted items before splitting.
                                         </Text>
                                     </VStack>
                                 </HStack>

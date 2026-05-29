@@ -22,7 +22,7 @@ function LandingPage() {
     function handleUploadReceipt() {
         createSessionMutation.mutate(undefined, {
             onSuccess: (data) => {
-                navigate(`/receipt/${data.shareCode}?mode=upload`);
+                navigate(`/session/${data.shareCode}/upload`);
             },
         });
     }
