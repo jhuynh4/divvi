@@ -5,6 +5,7 @@ import SessionPage from "./pages/SessionPage";
 import ReceiptBuilderPage from "./pages/ReceiptBuilderPage";
 import WorkspacePage from "./pages/WorkspacePage";
 import SummaryPage from "./pages/SummaryPage.tsx";
+import UploadReceiptPage from "./pages/UploadReceiptPage.tsx";
 
 function App() {
   return (
@@ -21,6 +22,10 @@ function App() {
                   element={<WorkspacePage />}
               />
               <Route path="/summary/:shareCode" element={<SummaryPage />} />
+              <Route
+                  path="/session/:shareCode/upload"
+                  element={<UploadReceiptPage />}
+              />
           </Routes>
       </BrowserRouter>
   );
