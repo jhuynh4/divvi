@@ -216,7 +216,8 @@ export async function uploadReceiptImage(
     );
 
     if (!response.ok) {
-        throw new Error("Failed to upload receipt image");
+        const error = await response.json();
+        throw new Error(error.message ?? "Failed to upload receipt image");
     }
 
     return response.json();
