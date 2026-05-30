@@ -230,8 +230,7 @@ function WorkspacePage() {
         <Box
             minH="100vh"
             bgGradient="to-b"
-            gradientFrom="gray.50"
-            gradientTo="gray.100"
+            bg="gray.50"
         >
             <Container
                 maxW="md"
