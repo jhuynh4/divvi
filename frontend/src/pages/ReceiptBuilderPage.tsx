@@ -196,7 +196,7 @@ function ReceiptBuilderPage() {
 
 
     return (
-        <Box minH="100vh" bgGradient="to-b" gradientFrom="gray.50" gradientTo="gray.100">
+        <Box minH="100vh" bgGradient="to-b" bg="gray.50">
             <Container maxW="md" minH="100vh" bg="gray.50" p="0">
                 <Box px="5" py="6" pb="10">
                     <VStack gap="6" align="stretch">
