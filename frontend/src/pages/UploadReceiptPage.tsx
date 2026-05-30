@@ -68,8 +68,12 @@ function UploadReceiptPage() {
             }
 
             navigate(`/receipt/${shareCode}?mode=upload`);
-        } catch {
-            setErrorMessage("We couldn't extract this receipt. Try a clearer photo.");
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrorMessage(error.message);
+            } else {
+                setErrorMessage("We couldn't extract this receipt. Try a clearer photo.");
+            }
         }
         finally {
             setIsProcessing(false);
@@ -84,7 +88,7 @@ function UploadReceiptPage() {
                         <VStack gap="4" align="stretch">
                             <HStack justify="space-between">
                                 <Button
-                                    onClick={() => navigate(`/session/${shareCode}`)}
+                                    onClick={() => navigate(`/`)}
                                     variant="ghost"
                                     size="sm"
                                     color="gray.600"
