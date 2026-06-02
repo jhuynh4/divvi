@@ -222,3 +222,19 @@ export async function uploadReceiptImage(
 
     return response.json();
 }
+
+export async function deleteParticipant(
+    shareCode: string,
+    participantId: string
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/sessions/${shareCode}/participants/${participantId}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to delete participant");
+    }
+}

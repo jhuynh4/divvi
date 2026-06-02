@@ -2,7 +2,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button, Container, VStack} from "@chakra-ui/react";
 
-import {getSession, joinSession} from "../api/sessionApi";
+import {getSession, joinSession, deleteParticipant} from "../api/sessionApi";
 import {SessionHeader} from "../features/session/components/SessionHeader";
 import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
@@ -33,6 +33,17 @@ function SessionPage() {
             });
         },
     });
+
+    const deleteParticipantMutation = useMutation({
+        mutationFn: (participantId: string) =>
+            deleteParticipant(shareCode!, participantId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["session", shareCode],
+            });
+        },
+    });
+
     if (sessionQuery.isPending) {
         return <div>Loading...</div>;
     }
@@ -51,6 +62,7 @@ function SessionPage() {
                 />
                 <ParticipantList
                     participants={sessionQuery.data.participants}
+                    onDeleteParticipant={(id) => deleteParticipantMutation.mutate(id)}
                 />
                 <JoinSession
                     onAddParticipant={(name) => {
