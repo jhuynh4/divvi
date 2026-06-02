@@ -10,12 +10,11 @@ import {
 } from "@chakra-ui/react";
 
 interface JoinSessionProps {
-    onJoin: (name: string) => void;
+    onAddParticipant: (name: string) => void;
 }
 
-export function JoinSession({ onJoin }: JoinSessionProps) {
+export function JoinSession({ onAddParticipant }: JoinSessionProps) {
     const [name, setName] = useState("");
-
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
@@ -23,7 +22,7 @@ export function JoinSession({ onJoin }: JoinSessionProps) {
             return;
         }
 
-        onJoin(name.trim());
+        onAddParticipant(name.trim());
         setName("");
     }
 
@@ -31,7 +30,7 @@ export function JoinSession({ onJoin }: JoinSessionProps) {
         <VStack gap="4" align="stretch">
             <Box px="1">
                 <Text fontSize="sm" color="gray.600">
-                    Join the Session
+                    Add Participants
                 </Text>
             </Box>
 
@@ -47,13 +46,12 @@ export function JoinSession({ onJoin }: JoinSessionProps) {
                     >
                         <Field.Root>
                             <Field.Label fontSize="sm" mb="2" color="gray.900">
-                                Your Name
+                                Participant Name
                             </Field.Label>
-
                             <Input
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Enter your name"
+                                placeholder="Enter participant name"
                                 px="4"
                                 py="3"
                                 bg="gray.100"
@@ -77,8 +75,9 @@ export function JoinSession({ onJoin }: JoinSessionProps) {
                         _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
                     >
                         <UserPlus size={20} />
-                        Join Session
+                        Add Participant
                     </Button>
+
                 </VStack>
             </form>
 
