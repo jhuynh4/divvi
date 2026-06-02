@@ -179,11 +179,17 @@ function ReceiptBuilderPage() {
     }
 
     function handleBack() {
+        if (returnTo === "workspace") {
+            navigate(`/workspace/${shareCode}`);
+            return;
+        }
+
         if (isUpload) {
             navigate(`/session/${shareCode}/upload`);
-        } else {
-            navigate("/");
+            return;
         }
+
+        navigate("/");
     }
 
     if (itemsQuery.isPending || sessionQuery.isPending) {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import { getParticipantColor } from "../utils/participantColors";
+import { UserPlus } from "lucide-react";
 import {
     Box,
     Container,
@@ -328,49 +329,65 @@ function WorkspacePage() {
                             borderWidth="1px"
                             borderColor="gray.200"
                         >
-                            <HStack
-                                gap="3"
-                                justify="space-between"
-                            >
-                                <HStack gap="-2">
-                                    {participants.slice(0, 7).map((participant) => (
-                                        <Avatar.Root
-                                            key={participant.id}
-                                            size="xs"
-                                            bg={getParticipantColor(participant.id)}
-                                            borderWidth="2px"
-                                            borderColor="white"
-                                        >
-                                            <Avatar.Fallback name={participant.displayName} color="white" />
-                                        </Avatar.Root>
-                                    ))}
+                            <VStack gap="3" align="stretch">
+                                <HStack gap="3" justify="space-between">
+                                    <HStack gap="-2">
+                                        {participants.slice(0, 7).map((participant) => (
+                                            <Avatar.Root
+                                                key={participant.id}
+                                                size="xs"
+                                                bg={getParticipantColor(participant.id)}
+                                                borderWidth="2px"
+                                                borderColor="white"
+                                            >
+                                                <Avatar.Fallback
+                                                    name={participant.displayName}
+                                                    color="white"
+                                                />
+                                            </Avatar.Root>
+                                        ))}
 
-                                    {participants.length > 7 && (
-                                        <Box
-                                            bg="gray.200"
-                                            color="gray.700"
-                                            borderRadius="full"
-                                            w="8"
-                                            h="8"
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                            fontSize="xs"
-                                            borderWidth="2px"
-                                            borderColor="white"
-                                        >
-                                            +{participants.length - 7}
-                                        </Box>
-                                    )}
+                                        {participants.length > 7 && (
+                                            <Box
+                                                bg="gray.200"
+                                                color="gray.700"
+                                                borderRadius="full"
+                                                w="8"
+                                                h="8"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                fontSize="xs"
+                                                borderWidth="2px"
+                                                borderColor="white"
+                                            >
+                                                +{participants.length - 7}
+                                            </Box>
+                                        )}
+                                    </HStack>
+
+                                    <Text fontSize="sm" color="gray.600">
+                                        {participants.length}{" "}
+                                        {participants.length === 1 ? "participant" : "participants"}
+                                    </Text>
                                 </HStack>
 
-                                <Text
-                                    fontSize="sm"
+                                <Button
+                                    onClick={() => navigate(`/session/${shareCode}?returnTo=workspace`)}
+                                    size="sm"
+                                    variant="ghost"
                                     color="gray.600"
+                                    borderRadius="lg"
+                                    px="3"
+                                    py="1.5"
+                                    h="auto"
+                                    w="full"
+                                    _hover={{ bg: "gray.100", color: "gray.900" }}
                                 >
-                                    {participants.length} participants
-                                </Text>
-                            </HStack>
+                                    <UserPlus size={14} />
+                                    <Text fontSize="xs">Add Participants</Text>
+                                </Button>
+                            </VStack>
                         </Box>
 
                         <Box
