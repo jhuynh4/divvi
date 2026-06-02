@@ -428,6 +428,10 @@ function WorkspacePage() {
                                                 bg="gray.100"
                                                 borderRadius="lg"
                                                 borderWidth="0"
+                                                onBlur={() => {
+                                                    const value = Number(itemPrice || "0");
+                                                    setItemPrice(value.toFixed(2));
+                                                }}
                                             />
                                         </Field.Root>
 
