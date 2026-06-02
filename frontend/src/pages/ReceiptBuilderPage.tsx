@@ -76,8 +76,8 @@ function ReceiptBuilderPage() {
 
     const items: ReceiptItem[] = itemsQuery.data ?? [];
 
-    const displayedTax = tax ?? String(sessionQuery.data?.taxAmount ?? "");
-    const displayedTip = tip ?? String(sessionQuery.data?.tipAmount ?? "");
+    const displayedTax = tax ?? Number(sessionQuery.data?.taxAmount ?? 0).toFixed(2);
+    const displayedTip = tip ?? Number(sessionQuery.data?.tipAmount ?? 0).toFixed(2);
 
     const createItemMutation = useMutation({
         mutationFn: (item: { name: string; price: number }) =>
@@ -332,6 +332,12 @@ function ReceiptBuilderPage() {
                                             w="28"
                                             h="auto"
                                             textAlign="right"
+                                            onBlur={() => {
+                                                const value = Number(displayedTax);
+                                                if (!Number.isNaN(value)) {
+                                                    setTax(value.toFixed(2));
+                                                }
+                                            }}
                                         />
                                     </HStack>
                                 </HStack>
@@ -360,6 +366,12 @@ function ReceiptBuilderPage() {
                                             w="28"
                                             h="auto"
                                             textAlign="right"
+                                            onBlur={() => {
+                                                const value = Number(displayedTip);
+                                                if (!Number.isNaN(value)) {
+                                                    setTip(value.toFixed(2));
+                                                }
+                                            }}
                                         />
                                     </HStack>
                                 </HStack>
@@ -558,6 +570,10 @@ function ReceiptBuilderPage() {
                                                 borderRadius="lg"
                                                 borderWidth="0"
                                                 fontSize="sm"
+                                                onBlur={() => {
+                                                    const value = Number(itemPrice || "0");
+                                                    setItemPrice(value.toFixed(2));
+                                                }}
                                             />
                                         </Field.Root>
 
