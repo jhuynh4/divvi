@@ -1,6 +1,6 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {Container, VStack} from "@chakra-ui/react";
+import {Button, Container, VStack} from "@chakra-ui/react";
 
 import {getSession, joinSession} from "../api/sessionApi";
 import {SessionHeader} from "../features/session/components/SessionHeader";
@@ -8,6 +8,7 @@ import {ParticipantList} from "../features/session/components/ParticipantsList.t
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
 import {useSessionSocket} from "../hooks/useSessionSocket.ts";
 import {useEffect} from "react";
+import {ArrowRight} from "lucide-react";
 
 function SessionPage() {
     const {shareCode} = useParams();
@@ -30,7 +31,6 @@ function SessionPage() {
             queryClient.invalidateQueries({
                 queryKey: ["session", shareCode],
             });
-            navigate(`/workspace/${shareCode}`);
         },
     });
     if (sessionQuery.isPending) {
@@ -53,10 +53,25 @@ function SessionPage() {
                     participants={sessionQuery.data.participants}
                 />
                 <JoinSession
-                    onJoin={(name) => {
+                    onAddParticipant={(name) => {
                         joinSessionMutation.mutate(name);
                     }}
                 />
+                <Button
+                    onClick={() => navigate(`/workspace/${shareCode}`)}
+                    disabled={sessionQuery.data.participants.length === 0}
+                    w="full"
+                    h="auto"
+                    py="4"
+                    bg="gray.900"
+                    color="white"
+                    borderRadius="2xl"
+                    _hover={{ opacity: 0.9 }}
+                    _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
+                    Start Splitting
+                    <ArrowRight size={20} />
+                </Button>
             </VStack>
         </Container>
     );
