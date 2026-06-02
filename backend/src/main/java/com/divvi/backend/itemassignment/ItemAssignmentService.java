@@ -90,7 +90,7 @@ public class ItemAssignmentService {
         return mapToResponse(assignment);
     }
 
-    private void rebalanceAssignments(UUID receiptItemId) {
+    public void rebalanceAssignments(UUID receiptItemId) {
         List<ItemAssignment> assignments =
                 itemAssignmentRepository.findByReceiptItemId(receiptItemId);
 
