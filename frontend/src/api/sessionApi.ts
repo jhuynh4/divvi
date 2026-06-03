@@ -1,3 +1,5 @@
+import { ApiError } from "./ApiError";
+
 const API_BASE_URL = 'http://localhost:8080/api';
 
 export async function createSession() {
@@ -16,8 +18,12 @@ export async function getSession(shareCode: string) {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to fetch session');
+        throw new ApiError(
+            response.status,
+            "Failed to load session"
+        );
     }
+
     return response.json();
 }
 
@@ -181,7 +187,10 @@ export async function getSummary(shareCode: string) {
     const response = await fetch(`${API_BASE_URL}/sessions/${shareCode}/summary`);
 
     if (!response.ok) {
-        throw new Error("Failed to fetch summary");
+        throw new ApiError(
+            response.status,
+            "Failed to load session summary"
+        );
     }
 
     return response.json();

@@ -1,8 +1,9 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {Button, Container, VStack} from "@chakra-ui/react";
+import {Box, Button, Container, VStack} from "@chakra-ui/react";
 
 import {getSession, joinSession, deleteParticipant} from "../api/sessionApi";
+import { ApiError } from "../api/ApiError";
 import {SessionHeader} from "../features/session/components/SessionHeader";
 import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
@@ -45,8 +46,16 @@ function SessionPage() {
         },
     });
 
+    if (
+        sessionQuery.isError &&
+        sessionQuery.error instanceof ApiError &&
+        sessionQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
+    }
+
     if (sessionQuery.isPending) {
-        return <div>Loading...</div>;
+        return <Box p="6">Loading session...</Box>;
     }
     if (sessionQuery.isError) {
         return <div>Error loading session</div>;
