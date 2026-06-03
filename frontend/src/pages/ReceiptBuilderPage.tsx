@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import {useParams, useNavigate, useSearchParams, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Box,
@@ -32,6 +32,7 @@ import {
     deleteReceiptItem,
     updateSession,
 } from "../api/sessionApi";
+import {ApiError} from "../api/ApiError.ts";
 
 interface ReceiptItem {
     id: string;
@@ -190,6 +191,14 @@ function ReceiptBuilderPage() {
         }
 
         navigate("/");
+    }
+
+    if (
+        sessionQuery.isError &&
+        sessionQuery.error instanceof ApiError &&
+        sessionQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
     }
 
     if (itemsQuery.isPending || sessionQuery.isPending) {

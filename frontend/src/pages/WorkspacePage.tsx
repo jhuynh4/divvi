@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import {useParams, useNavigate, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import { getParticipantColor } from "../utils/participantColors";
@@ -32,6 +32,7 @@ import {
     createAssignment,
     deleteAssignment,
 } from "../api/sessionApi";
+import {ApiError} from "../api/ApiError.ts";
 
 
 interface Participant {
@@ -209,6 +210,14 @@ function WorkspacePage() {
 
     function handleGoToSummary() {
         navigate(`/summary/${shareCode}`);
+    }
+
+    if (
+        sessionQuery.isError &&
+        sessionQuery.error instanceof ApiError &&
+        sessionQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
     }
 
     if (
