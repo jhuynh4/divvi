@@ -15,4 +15,7 @@ public interface ItemAssignmentRepository extends JpaRepository<ItemAssignment, 
     void deleteByReceiptItemId(UUID receiptItemId);
 
     void deleteByParticipantId(UUID participantId);
+
+    void deleteByReceiptItemSessionId(UUID sessionId);
+    void deleteByParticipantSessionId(UUID sessionId);
 }

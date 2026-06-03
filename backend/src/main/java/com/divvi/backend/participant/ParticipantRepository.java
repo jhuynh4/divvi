@@ -12,4 +12,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     List<Participant> findBySessionShareCode(String shareCode);
 
     Optional<Participant> findByIdAndSessionShareCode(UUID id, String shareCode);
+
+    void deleteBySessionId(UUID sessionId);
 }

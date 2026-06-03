@@ -121,6 +121,7 @@ public class SessionService {
                 session.getShareCode(),
                 session.getStatus(),
                 session.getCreatedAt(),
+                session.getExpiresAt(),
                 session.getTaxAmount(),
                 session.getTipAmount(),
                 participants
