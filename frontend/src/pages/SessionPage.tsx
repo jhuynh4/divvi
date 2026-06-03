@@ -1,18 +1,21 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {Container, VStack} from "@chakra-ui/react";
+import {Box, Button, Container, VStack} from "@chakra-ui/react";
 
-import {getSession, joinSession} from "../api/sessionApi";
+import {getSession, joinSession, deleteParticipant} from "../api/sessionApi";
+import { ApiError } from "../api/ApiError";
 import {SessionHeader} from "../features/session/components/SessionHeader";
 import {ParticipantList} from "../features/session/components/ParticipantsList.tsx";
 import {JoinSession} from "../features/session/components/JoinSession.tsx";
 import {useSessionSocket} from "../hooks/useSessionSocket.ts";
 import {useEffect} from "react";
+import {ArrowRight} from "lucide-react";
 
 function SessionPage() {
     const {shareCode} = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
     useSessionSocket(shareCode);
     const sessionQuery = useQuery({
         queryKey: ['session', shareCode],
@@ -30,11 +33,29 @@ function SessionPage() {
             queryClient.invalidateQueries({
                 queryKey: ["session", shareCode],
             });
-            navigate(`/workspace/${shareCode}`);
         },
     });
+
+    const deleteParticipantMutation = useMutation({
+        mutationFn: (participantId: string) =>
+            deleteParticipant(shareCode!, participantId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["session", shareCode],
+            });
+        },
+    });
+
+    if (
+        sessionQuery.isError &&
+        sessionQuery.error instanceof ApiError &&
+        sessionQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
+    }
+
     if (sessionQuery.isPending) {
-        return <div>Loading...</div>;
+        return <Box p="6">Loading session...</Box>;
     }
     if (sessionQuery.isError) {
         return <div>Error loading session</div>;
@@ -51,12 +72,28 @@ function SessionPage() {
                 />
                 <ParticipantList
                     participants={sessionQuery.data.participants}
+                    onDeleteParticipant={(id) => deleteParticipantMutation.mutate(id)}
                 />
                 <JoinSession
-                    onJoin={(name) => {
+                    onAddParticipant={(name) => {
                         joinSessionMutation.mutate(name);
                     }}
                 />
+                <Button
+                    onClick={() => navigate(`/workspace/${shareCode}`)}
+                    disabled={sessionQuery.data.participants.length === 0}
+                    w="full"
+                    h="auto"
+                    py="4"
+                    bg="gray.900"
+                    color="white"
+                    borderRadius="2xl"
+                    _hover={{ opacity: 0.9 }}
+                    _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
+                    Start Splitting
+                    <ArrowRight size={20} />
+                </Button>
             </VStack>
         </Container>
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import {useParams, useNavigate, useSearchParams, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Box,
@@ -32,6 +32,7 @@ import {
     deleteReceiptItem,
     updateSession,
 } from "../api/sessionApi";
+import {ApiError} from "../api/ApiError.ts";
 
 interface ReceiptItem {
     id: string;
@@ -76,8 +77,8 @@ function ReceiptBuilderPage() {
 
     const items: ReceiptItem[] = itemsQuery.data ?? [];
 
-    const displayedTax = tax ?? String(sessionQuery.data?.taxAmount ?? "");
-    const displayedTip = tip ?? String(sessionQuery.data?.tipAmount ?? "");
+    const displayedTax = tax ?? Number(sessionQuery.data?.taxAmount ?? 0).toFixed(2);
+    const displayedTip = tip ?? Number(sessionQuery.data?.tipAmount ?? 0).toFixed(2);
 
     const createItemMutation = useMutation({
         mutationFn: (item: { name: string; price: number }) =>
@@ -179,11 +180,25 @@ function ReceiptBuilderPage() {
     }
 
     function handleBack() {
+        if (returnTo === "workspace") {
+            navigate(`/workspace/${shareCode}`);
+            return;
+        }
+
         if (isUpload) {
             navigate(`/session/${shareCode}/upload`);
-        } else {
-            navigate("/");
+            return;
         }
+
+        navigate("/");
+    }
+
+    if (
+        sessionQuery.isError &&
+        sessionQuery.error instanceof ApiError &&
+        sessionQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
     }
 
     if (itemsQuery.isPending || sessionQuery.isPending) {
@@ -196,7 +211,7 @@ function ReceiptBuilderPage() {
 
 
     return (
-        <Box minH="100vh" bgGradient="to-b" gradientFrom="gray.50" gradientTo="gray.100">
+        <Box minH="100vh" bgGradient="to-b" bg="gray.50">
             <Container maxW="md" minH="100vh" bg="gray.50" p="0">
                 <Box px="5" py="6" pb="10">
                     <VStack gap="6" align="stretch">
@@ -332,6 +347,12 @@ function ReceiptBuilderPage() {
                                             w="28"
                                             h="auto"
                                             textAlign="right"
+                                            onBlur={() => {
+                                                const value = Number(displayedTax);
+                                                if (!Number.isNaN(value)) {
+                                                    setTax(value.toFixed(2));
+                                                }
+                                            }}
                                         />
                                     </HStack>
                                 </HStack>
@@ -360,6 +381,12 @@ function ReceiptBuilderPage() {
                                             w="28"
                                             h="auto"
                                             textAlign="right"
+                                            onBlur={() => {
+                                                const value = Number(displayedTip);
+                                                if (!Number.isNaN(value)) {
+                                                    setTip(value.toFixed(2));
+                                                }
+                                            }}
                                         />
                                     </HStack>
                                 </HStack>
@@ -558,6 +585,10 @@ function ReceiptBuilderPage() {
                                                 borderRadius="lg"
                                                 borderWidth="0"
                                                 fontSize="sm"
+                                                onBlur={() => {
+                                                    const value = Number(itemPrice || "0");
+                                                    setItemPrice(value.toFixed(2));
+                                                }}
                                             />
                                         </Field.Root>
 
