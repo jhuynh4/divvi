@@ -1,4 +1,4 @@
-import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button, Container, VStack} from "@chakra-ui/react";
 
@@ -15,8 +15,6 @@ function SessionPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const [searchParams] = useSearchParams();
-    const returnTo = searchParams.get("returnTo");
     useSessionSocket(shareCode);
     const sessionQuery = useQuery({
         queryKey: ['session', shareCode],
