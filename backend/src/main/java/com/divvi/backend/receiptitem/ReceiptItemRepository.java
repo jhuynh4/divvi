@@ -10,4 +10,6 @@ import java.util.UUID;
 
 public interface ReceiptItemRepository extends JpaRepository<ReceiptItem, UUID> {
     List<ReceiptItem> findBySessionShareCode(String shareCode);
+
+    void deleteBySessionId(UUID sessionId);
 }
