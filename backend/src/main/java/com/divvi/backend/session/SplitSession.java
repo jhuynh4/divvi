@@ -41,6 +41,11 @@ public class SplitSession {
     @Column(nullable = false)
     private BigDecimal tipAmount = BigDecimal.ZERO;
 
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private int ocrAttemptCount = 0;
+
     protected SplitSession(){
     }
 

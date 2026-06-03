@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import {useParams, useNavigate, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Box,
@@ -16,6 +16,7 @@ import {ArrowLeft, Check, CheckCircle2} from "lucide-react";
 import { getSummary, completeSession } from "../api/sessionApi";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import { getParticipantColor} from "../utils/participantColors.ts";
+import {ApiError} from "../api/ApiError.ts";
 
 interface ParticipantSummary {
     participantId: string;
@@ -63,6 +64,14 @@ function SummaryPage() {
         },
     });
 
+    if (
+        summaryQuery.isError &&
+        summaryQuery.error instanceof ApiError &&
+        summaryQuery.error.status === 404
+    ) {
+        return <Navigate to="/not-found" replace />;
+    }
+
     if (summaryQuery.isPending) {
         return <Box p="6">Loading summary...</Box>;
     }
@@ -75,7 +84,7 @@ function SummaryPage() {
     const isSettled = summary.status === "COMPLETED";
 
     return (
-        <Box minH="100vh" bgGradient="to-b" gradientFrom="gray.50" gradientTo="gray.100">
+        <Box minH="100vh" bgGradient="to-b" bg="gray.50">
             <Container maxW="md" minH="100vh" bg="gray.50" p="0">
                 <Box px="5" py="6" pb="8">
                     <VStack gap="6" align="stretch">

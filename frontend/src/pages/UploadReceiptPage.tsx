@@ -33,7 +33,7 @@ function UploadReceiptPage() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-
+    const [errorMessage, setErrorMessage] = useState("");
     function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
 
@@ -68,20 +68,27 @@ function UploadReceiptPage() {
             }
 
             navigate(`/receipt/${shareCode}?mode=upload`);
-        } finally {
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrorMessage(error.message);
+            } else {
+                setErrorMessage("We couldn't extract this receipt. Try a clearer photo.");
+            }
+        }
+        finally {
             setIsProcessing(false);
         }
     }
 
     return (
-        <Box minH="100vh" bgGradient="to-b" gradientFrom="gray.50" gradientTo="gray.100">
+        <Box minH="100vh" bgGradient="to-b" bg="gray.50">
             <Container maxW="md" minH="100vh" bg="gray.50" p="0">
                 <Box px="5" py="6" pb="10">
                     <VStack gap="6" align="stretch">
                         <VStack gap="4" align="stretch">
                             <HStack justify="space-between">
                                 <Button
-                                    onClick={() => navigate(`/session/${shareCode}`)}
+                                    onClick={() => navigate(`/`)}
                                     variant="ghost"
                                     size="sm"
                                     color="gray.600"
@@ -228,7 +235,11 @@ function UploadReceiptPage() {
                                 </VStack>
                             </VStack>
                         </Box>
-
+                        {errorMessage && (
+                            <Text fontSize="sm" color="red.500" textAlign="center">
+                                {errorMessage}
+                            </Text>
+                        )}
                         {selectedImage && !isProcessing && (
                             <Button
                                 onClick={handleUploadAndExtract}

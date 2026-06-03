@@ -1,5 +1,6 @@
-import { Box, VStack, HStack, Text, Badge, Circle } from "@chakra-ui/react";
+import { Box, VStack, HStack, Text, Badge, Circle, IconButton,} from "@chakra-ui/react";
 import { getParticipantColor } from "../../../utils/participantColors.ts";
+import { Trash2 } from "lucide-react";
 interface Participant {
     id: string;
     displayName: string;
@@ -7,9 +8,14 @@ interface Participant {
 
 interface ParticipantListProps {
     participants: Participant[];
+    onDeleteParticipant?: (participantId: string) => void;
 }
 
-export function ParticipantList({ participants }: ParticipantListProps) {
+
+export function ParticipantList({
+                                    participants,
+                                    onDeleteParticipant,
+                                }: ParticipantListProps) {
     const getInitials = (name: string) => {
         return name
             .split(" ")
@@ -75,6 +81,19 @@ export function ParticipantList({ participants }: ParticipantListProps) {
                                     <Badge bg="gray.100" color="gray.900">
                                         Host
                                     </Badge>
+                                )}
+
+                                {onDeleteParticipant && (
+                                    <IconButton
+                                        aria-label="Remove participant"
+                                        size="sm"
+                                        variant="ghost"
+                                        color="gray.400"
+                                        onClick={() => onDeleteParticipant(participant.id)}
+                                        _hover={{ color: "red.500", bg: "red.50" }}
+                                    >
+                                        <Trash2 size={15} />
+                                    </IconButton>
                                 )}
                             </HStack>
                         ))}

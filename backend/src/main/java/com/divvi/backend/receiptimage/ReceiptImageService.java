@@ -1,6 +1,8 @@
 package com.divvi.backend.receiptimage;
 
 import com.divvi.backend.ocr.OcrService;
+import com.divvi.backend.ocr.OcrUsage;
+import com.divvi.backend.ocr.OcrUsageRepository;
 import com.divvi.backend.ocr.ReceiptParserService;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
 import com.divvi.backend.session.SplitSession;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.time.YearMonth;
 
 @Service
 public class ReceiptImageService{
@@ -24,14 +27,34 @@ public class ReceiptImageService{
 
     private final ReceiptParserService receiptParserService;
 
+    private final OcrUsageRepository ocrUsageRepository;
+
+    private static final int MAX_OCR_ATTEMPTS_PER_SESSION = 3;
+    private static final int MONTHLY_OCR_LIMIT = 900;
+
     public ReceiptImageService(
             SplitSessionRepository sessionRepository,
             OcrService ocrService,
-            ReceiptParserService receiptParserService
+            ReceiptParserService receiptParserService,
+            OcrUsageRepository ocrUsageRepository
     ){
         this.sessionRepository = sessionRepository;
         this.ocrService = ocrService;
         this.receiptParserService = receiptParserService;
+        this.ocrUsageRepository = ocrUsageRepository;
+    }
+
+    private OcrUsage getCurrentMonthUsage() {
+        String monthKey = YearMonth.now().toString();
+
+        return ocrUsageRepository
+                .findById(monthKey)
+                .orElseGet(() -> {
+                    OcrUsage usage = new OcrUsage();
+                    usage.setMonthKey(monthKey);
+                    usage.setRequestCount(0);
+                    return usage;
+                });
     }
 
     public ReceiptImageUploadResponse uploadReceiptImage(
@@ -45,10 +68,27 @@ public class ReceiptImageService{
                         "Session not found"
                 ));
 
+
         if (file.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Receipt Image is required"
+            );
+        }
+
+        long maxFileSize = 5 * 1024 * 1024;
+        if (file.getSize() > maxFileSize) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Receipt image must be smaller than 5MB"
+            );
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only image uploads are allowed"
             );
         }
 
@@ -62,8 +102,30 @@ public class ReceiptImageService{
             Path storedPath = uploadDir.resolve(storedFileName);
             Files.copy(file.getInputStream(), storedPath);
 
+            if (session.getOcrAttemptCount() >= MAX_OCR_ATTEMPTS_PER_SESSION) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "You've reached the receipt scan limit for this session."
+                );
+            }
+
+            OcrUsage usage = getCurrentMonthUsage();
+
+            if (usage.getRequestCount() >= MONTHLY_OCR_LIMIT) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Receipt scanning is temporarily unavailable. Please enter items manually."
+                );
+            }
+
             var words = ocrService.extractWords(storedPath);
             var items = receiptParserService.parseItemsFromWords(words);
+
+            session.setOcrAttemptCount(session.getOcrAttemptCount() + 1);
+            sessionRepository.save(session);
+
+            usage.setRequestCount(usage.getRequestCount() + 1);
+            ocrUsageRepository.save(usage);
 
             return new ReceiptImageUploadResponse(
                     originalFileName,
@@ -71,6 +133,7 @@ public class ReceiptImageService{
                     storedPath.toString(),
                     items
             );
+
         } catch (IOException e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
