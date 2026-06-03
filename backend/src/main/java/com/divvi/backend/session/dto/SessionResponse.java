@@ -13,6 +13,7 @@ public record SessionResponse(
         String shareCode,
         SessionStatus status,
         Instant createdAt,
+        Instant expiresAt,
         BigDecimal taxAmount,
         BigDecimal tipAmount,
         List<ParticipantResponse> participants
