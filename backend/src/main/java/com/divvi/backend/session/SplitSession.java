@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Entity
@@ -46,6 +47,11 @@ public class SplitSession {
     @Column(nullable = false)
     private int ocrAttemptCount = 0;
 
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private Instant expiresAt;
+
     protected SplitSession(){
     }
 
@@ -53,6 +59,7 @@ public class SplitSession {
         this.shareCode = shareCode;
         this.status = SessionStatus.ACTIVE;
         this.createdAt = Instant.now();
+        this.expiresAt = this.createdAt.plus(7, ChronoUnit.DAYS);
     }
 
 }
