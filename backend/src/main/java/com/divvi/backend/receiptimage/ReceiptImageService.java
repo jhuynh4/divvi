@@ -4,7 +4,9 @@ import com.divvi.backend.ocr.OcrService;
 import com.divvi.backend.ocr.OcrUsage;
 import com.divvi.backend.ocr.OcrUsageRepository;
 import com.divvi.backend.ocr.ReceiptParserService;
+import com.divvi.backend.receiptimage.dto.ReceiptImageResponse;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
+import com.divvi.backend.receiptitem.ReceiptItemRepository;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,8 @@ public class ReceiptImageService{
 
     private final OcrUsageRepository ocrUsageRepository;
 
+    private final ReceiptImageRepository receiptImageRepository;
+
     private static final int MAX_OCR_ATTEMPTS_PER_SESSION = 3;
     private static final int MONTHLY_OCR_LIMIT = 900;
 
@@ -36,12 +40,14 @@ public class ReceiptImageService{
             SplitSessionRepository sessionRepository,
             OcrService ocrService,
             ReceiptParserService receiptParserService,
-            OcrUsageRepository ocrUsageRepository
+            OcrUsageRepository ocrUsageRepository,
+            ReceiptImageRepository receiptImageRepository
     ){
         this.sessionRepository = sessionRepository;
         this.ocrService = ocrService;
         this.receiptParserService = receiptParserService;
         this.ocrUsageRepository = ocrUsageRepository;
+        this.receiptImageRepository = receiptImageRepository;
     }
 
     private OcrUsage getCurrentMonthUsage() {
@@ -102,6 +108,29 @@ public class ReceiptImageService{
             Path storedPath = uploadDir.resolve(storedFileName);
             Files.copy(file.getInputStream(), storedPath);
 
+            receiptImageRepository.findBySessionShareCode(shareCode)
+                    .ifPresent(existingReceiptImage -> {
+                        try {
+                            Files.deleteIfExists(Path.of(existingReceiptImage.getImagePath()));
+                        } catch (IOException e) {
+                            throw new ResponseStatusException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR,
+                                    "Failed to replace existing receipt image"
+                            );
+                        }
+
+                        receiptImageRepository.delete(existingReceiptImage);
+                    });
+
+            ReceiptImage receiptImage = new ReceiptImage(
+                    originalFileName,
+                    storedFileName,
+                    storedPath.toString(),
+                    session
+            );
+            receiptImageRepository.save(receiptImage);
+
+
             if (session.getOcrAttemptCount() >= MAX_OCR_ATTEMPTS_PER_SESSION) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
@@ -140,5 +169,19 @@ public class ReceiptImageService{
                     "Failed to store receipt image"
             );
         }
+    }
+
+    public ReceiptImageResponse getReceiptImage(String shareCode) {
+        ReceiptImage receiptImage = receiptImageRepository
+                .findBySessionShareCode(shareCode)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Receipt image not found"
+                ));
+
+        return new ReceiptImageResponse(
+                receiptImage.getOriginalFilename(),
+                receiptImage.getImagePath()
+        );
     }
 }
