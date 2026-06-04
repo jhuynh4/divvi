@@ -1,5 +1,6 @@
 package com.divvi.backend.receiptimage;
 
+import com.divvi.backend.receiptimage.dto.ReceiptImageResponse;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -25,5 +26,12 @@ public class ReceiptImageController {
             @RequestParam("file") MultipartFile file
     ) {
         return receiptImageService.uploadReceiptImage(shareCode, file);
+    }
+
+    @GetMapping("/{shareCode}/receipt-image")
+    public ReceiptImageResponse getReceiptImage(
+            @PathVariable String shareCode
+    ) {
+        return receiptImageService.getReceiptImage(shareCode);
     }
 }
