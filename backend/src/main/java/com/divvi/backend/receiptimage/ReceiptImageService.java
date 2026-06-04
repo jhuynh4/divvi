@@ -6,19 +6,21 @@ import com.divvi.backend.ocr.OcrUsageRepository;
 import com.divvi.backend.ocr.ReceiptParserService;
 import com.divvi.backend.receiptimage.dto.ReceiptImageResponse;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
-import com.divvi.backend.receiptitem.ReceiptItemRepository;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.time.YearMonth;
+
 
 @Service
 public class ReceiptImageService{
@@ -183,5 +185,16 @@ public class ReceiptImageService{
                 receiptImage.getOriginalFilename(),
                 receiptImage.getImagePath()
         );
+    }
+
+    public Resource getReceiptImageFile(String shareCode) {
+        ReceiptImage receiptImage = receiptImageRepository
+                .findBySessionShareCode(shareCode)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Receipt image not found"
+                ));
+
+        return new FileSystemResource(receiptImage.getImagePath());
     }
 }

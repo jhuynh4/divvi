@@ -247,3 +247,9 @@ export async function deleteParticipant(
         throw new Error("Failed to delete participant");
     }
 }
+
+export async function getReceiptImageUrl(
+    shareCode: string
+) {
+    return `${API_BASE_URL}/sessions/${shareCode}/receipt-image/view`;
+}

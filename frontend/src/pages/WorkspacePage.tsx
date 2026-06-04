@@ -3,7 +3,7 @@ import {useParams, useNavigate, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import { getParticipantColor } from "../utils/participantColors";
-import { UserPlus } from "lucide-react";
+import {Receipt, UserPlus} from "lucide-react";
 import {
     Box,
     Container,
@@ -490,7 +490,26 @@ function WorkspacePage() {
                                 >
                                     Receipt Items
                                 </Text>
-
+                                <HStack gap="2">
+                                <Button
+                                    onClick={() =>
+                                        window.open(
+                                            `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view`,
+                                            "_blank"
+                                        )
+                                    }
+                                size="sm"
+                                variant="ghost"
+                                color="gray.500"
+                                px="2"
+                                py="1"
+                                h="auto"
+                                borderRadius="lg"
+                                _hover={{ bg: "gray.200", color: "gray.900" }}
+                                >
+                                <Receipt size={14} />
+                                <Text fontSize="xs">View Receipt</Text>
+                                </Button>
                                 <Button
                                     onClick={() =>
                                         navigate(`/receipt/${shareCode}?returnTo=workspace`)
@@ -504,6 +523,7 @@ function WorkspacePage() {
                                         Edit Receipt
                                     </Text>
                                 </Button>
+                                </HStack>
                             </HStack>
 
                             {items.length === 0 ? (
