@@ -3,7 +3,8 @@ import {useParams, useNavigate, Navigate} from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import { getParticipantColor } from "../utils/participantColors";
-import { UserPlus } from "lucide-react";
+import { ReceiptViewerModal } from "../features/session/components/ReceiptViewerModal";
+import {Receipt, UserPlus} from "lucide-react";
 import {
     Box,
     Container,
@@ -31,6 +32,7 @@ import {
     getAssignments,
     createAssignment,
     deleteAssignment,
+    getReceiptImage,
 } from "../api/sessionApi";
 import {ApiError} from "../api/ApiError.ts";
 
@@ -63,7 +65,11 @@ function WorkspacePage() {
 
     const [itemName, setItemName] = useState("");
     const [itemPrice, setItemPrice] = useState("");
+    const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
+
+    const receiptImageUrl =
+        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view`;
     const sessionQuery = useQuery({
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
@@ -83,6 +89,15 @@ function WorkspacePage() {
         queryKey: ["assignments", shareCode],
         queryFn: () => getAssignments(shareCode!),
     });
+
+    const receiptImageQuery = useQuery({
+        queryKey: ["receiptImage", shareCode],
+        queryFn: () => getReceiptImage(shareCode!),
+        enabled: Boolean(shareCode),
+        retry: false,
+    });
+
+    const hasReceiptImage = Boolean(receiptImageQuery.data);
 
     const createItemMutation = useMutation({
         mutationFn: (item: { name: string; price: number }) =>
@@ -490,7 +505,24 @@ function WorkspacePage() {
                                 >
                                     Receipt Items
                                 </Text>
-
+                                <HStack gap="2">
+                                {hasReceiptImage && (
+                                <Button
+                                    onClick={() => setIsReceiptOpen(true)
+                                    }
+                                size="sm"
+                                variant="ghost"
+                                color="gray.500"
+                                px="2"
+                                py="1"
+                                h="auto"
+                                borderRadius="lg"
+                                _hover={{ bg: "gray.200", color: "gray.900" }}
+                                >
+                                <Receipt size={14} />
+                                <Text fontSize="xs">View Receipt</Text>
+                                </Button>
+                                )}
                                 <Button
                                     onClick={() =>
                                         navigate(`/receipt/${shareCode}?returnTo=workspace`)
@@ -504,6 +536,7 @@ function WorkspacePage() {
                                         Edit Receipt
                                     </Text>
                                 </Button>
+                                </HStack>
                             </HStack>
 
                             {items.length === 0 ? (
@@ -692,6 +725,13 @@ function WorkspacePage() {
 
                             <ArrowRight size={20} />
                         </Button>
+                        {hasReceiptImage && (
+                        <ReceiptViewerModal
+                            open={isReceiptOpen}
+                            onOpenChange={setIsReceiptOpen}
+                            imageUrl={receiptImageUrl}
+                        />
+                        )}
                     </VStack>
                 </Box>
             </Container>
