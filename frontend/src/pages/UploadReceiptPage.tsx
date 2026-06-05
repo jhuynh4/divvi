@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams} from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
     Box,
     Container,
@@ -15,10 +16,15 @@ import {
     Upload,
     Camera,
     CheckCircle2,
-    Image as ImageIcon,
+    Image as ImageIcon, ArrowRight,
 } from "lucide-react";
 
-import { uploadReceiptImage, createReceiptItem } from "../api/sessionApi";
+import {
+    uploadReceiptImage,
+    createReceiptItem,
+    getReceiptImage,
+    getReceiptImageViewUrl,
+} from "../api/sessionApi";
 
 interface ParsedReceiptItem {
     name: string;
@@ -34,6 +40,21 @@ function UploadReceiptPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [searchParams] = useSearchParams();
+    const returnTo = searchParams.get("returnTo");
+
+    const receiptImageQuery = useQuery({
+        queryKey: ["receiptImage", shareCode],
+        queryFn: () => getReceiptImage(shareCode!),
+        enabled: Boolean(shareCode),
+    });
+
+    const persistedReceiptImage =
+        receiptImageQuery.data && shareCode
+            ? getReceiptImageViewUrl(shareCode)
+            : null;
+
+    const imageToDisplay = selectedImage ?? persistedReceiptImage;
     function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
 
@@ -137,7 +158,7 @@ function UploadReceiptPage() {
                                         </Text>
                                     </VStack>
                                 </VStack>
-                            ) : selectedImage ? (
+                            ) : imageToDisplay ? (
                                 <VStack gap="4" w="full">
                                     <Box
                                         position="relative"
@@ -147,7 +168,7 @@ function UploadReceiptPage() {
                                         bg="gray.100"
                                     >
                                         <Image
-                                            src={selectedImage}
+                                            src={imageToDisplay}
                                             alt="Selected receipt"
                                             w="full"
                                             h="auto"
@@ -163,7 +184,11 @@ function UploadReceiptPage() {
                                         color="gray.600"
                                     >
                                         <Camera size={16} />
-                                        <Text fontSize="sm">Choose Different Photo</Text>
+                                        <Text fontSize="sm">
+                                            {persistedReceiptImage && !selectedImage
+                                                ? "Replace Receipt"
+                                                : "Choose Different Photo"}
+                                        </Text>
                                     </Button>
                                 </VStack>
                             ) : (
@@ -183,7 +208,7 @@ function UploadReceiptPage() {
                             )}
                         </Box>
 
-                        {!selectedImage && !isProcessing && (
+                        {!imageToDisplay && !isProcessing && (
                             <Button
                                 onClick={handleChoosePhoto}
                                 w="full"
@@ -240,7 +265,7 @@ function UploadReceiptPage() {
                                 {errorMessage}
                             </Text>
                         )}
-                        {selectedImage && !isProcessing && (
+                        {selectedFile && !isProcessing && (
                             <Button
                                 onClick={handleUploadAndExtract}
                                 w="full"
@@ -254,6 +279,24 @@ function UploadReceiptPage() {
                             >
                                 <Upload size={20} />
                                 <Text>Upload & Extract Items</Text>
+                            </Button>
+                        )}
+                        {persistedReceiptImage && !selectedFile && returnTo === "receipt-builder" && (
+                            <Button
+                                onClick={() => navigate(
+                                    `/receipt/${shareCode}?mode=upload`
+                                )}
+                                w="full"
+                                py="4"
+                                h="auto"
+                                bg="gray.900"
+                                color="white"
+                                borderRadius="2xl"
+                                _hover={{ opacity: 0.9 }}
+                                shadow="sm"
+                            >
+                                <Text>Back to Workspace</Text>
+                                <ArrowRight size={20}/>
                             </Button>
                         )}
                     </VStack>

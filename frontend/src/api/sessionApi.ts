@@ -253,3 +253,19 @@ export async function getReceiptImageUrl(
 ) {
     return `${API_BASE_URL}/sessions/${shareCode}/receipt-image/view`;
 }
+
+export async function getReceiptImage(shareCode: string) {
+    const response = await fetch(
+        `${API_BASE_URL}/sessions/${shareCode}/receipt-image`
+    );
+
+    if (!response.ok) {
+        return null;
+    }
+
+    return response.json();
+}
+
+export function getReceiptImageViewUrl(shareCode: string) {
+    return `${API_BASE_URL}/sessions/${shareCode}/receipt-image/view`;
+}

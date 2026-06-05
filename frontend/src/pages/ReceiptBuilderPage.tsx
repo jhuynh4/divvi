@@ -21,7 +21,7 @@ import {
     Upload,
     Edit3,
     ArrowRight,
-    Check,
+    Check, ImageIcon,
 } from "lucide-react";
 
 import {
@@ -31,8 +31,10 @@ import {
     updateReceiptItem,
     deleteReceiptItem,
     updateSession,
+    getReceiptImage,
 } from "../api/sessionApi";
 import {ApiError} from "../api/ApiError.ts";
+import { ReceiptViewerModal } from "../features/session/components/ReceiptViewerModal";
 
 interface ReceiptItem {
     id: string;
@@ -55,14 +57,27 @@ function ReceiptBuilderPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState("");
     const [editPrice, setEditPrice] = useState("");
+    const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
     const [tax, setTax] = useState<string | null>(null);
     const [tip, setTip] = useState<string | null>(null);
+
+    const receiptImageUrl =
+        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view`;
 
     const sessionQuery = useQuery({
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
     });
+
+    const receiptImageQuery = useQuery({
+        queryKey: ["receiptImage", shareCode],
+        queryFn: () => getReceiptImage(shareCode!),
+        enabled: Boolean(shareCode),
+        retry: false,
+    });
+
+    const hasReceiptImage = Boolean(receiptImageQuery.data);
 
     useEffect(() => {
         if (sessionQuery.data?.status === "COMPLETED") {
@@ -186,7 +201,7 @@ function ReceiptBuilderPage() {
         }
 
         if (isUpload) {
-            navigate(`/session/${shareCode}/upload`);
+            navigate(`/session/${shareCode}/upload?returnTo=receipt-builder`);
             return;
         }
 
@@ -265,26 +280,42 @@ function ReceiptBuilderPage() {
                                 borderWidth="1px"
                                 borderColor="blue.100"
                             >
-                                <HStack gap="3">
-                                    <Box
-                                        bg="blue.100"
-                                        color="blue.600"
-                                        borderRadius="xl"
-                                        p="2.5"
-                                        flexShrink="0"
-                                    >
-                                        <Receipt size={20} />
-                                    </Box>
+                                <VStack gap="3" align="stretch">
+                                    <HStack gap="3">
+                                        <Box
+                                            bg="blue.100"
+                                            color="blue.600"
+                                            borderRadius="xl"
+                                            p="2.5"
+                                            flexShrink="0"
+                                        >
+                                            <Receipt size={20} />
+                                        </Box>
 
-                                    <VStack gap="0.5" align="start" flex="1">
-                                        <Text fontSize="sm" fontWeight="medium" color="blue.900">
-                                            Receipt scanned
-                                        </Text>
-                                        <Text fontSize="xs" color="blue.600">
-                                            Review and correct the extracted items before splitting.
-                                        </Text>
-                                    </VStack>
-                                </HStack>
+                                        <VStack gap="0.5" align="start" flex="1">
+                                            <Text fontSize="sm" fontWeight="medium" color="blue.900">
+                                                Receipt scanned
+                                            </Text>
+                                            <Text fontSize="xs" color="blue.600">
+                                                Review and correct the extracted items before splitting.
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+
+                                    <Button
+                                        onClick={() => setIsReceiptOpen(true)}
+                                        size="sm"
+                                        variant="outline"
+                                        bg="white"
+                                        borderColor="blue.200"
+                                        color="blue.700"
+                                        borderRadius="xl"
+                                        _hover={{ bg: "blue.50", borderColor: "blue.300" }}
+                                    >
+                                        <ImageIcon size={14} />
+                                        <Text fontSize="xs">View Original Receipt</Text>
+                                    </Button>
+                                </VStack>
                             </Box>
                         )}
 
@@ -634,6 +665,13 @@ function ReceiptBuilderPage() {
                                 </Text>
                             )}
                         </VStack>
+                        {hasReceiptImage && (
+                            <ReceiptViewerModal
+                                open={isReceiptOpen}
+                                onOpenChange={setIsReceiptOpen}
+                                imageUrl={receiptImageUrl}
+                            />
+                        )}
                     </VStack>
                 </Box>
             </Container>
