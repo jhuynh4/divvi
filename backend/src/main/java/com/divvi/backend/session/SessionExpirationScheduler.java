@@ -2,6 +2,8 @@ package com.divvi.backend.session;
 
 import com.divvi.backend.itemassignment.ItemAssignmentRepository;
 import com.divvi.backend.participant.ParticipantRepository;
+import com.divvi.backend.receiptimage.ReceiptImageRepository;
+import com.divvi.backend.receiptimage.ReceiptStorageService;
 import com.divvi.backend.receiptitem.ReceiptItemRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,17 +20,27 @@ public class SessionExpirationScheduler {
     private final ItemAssignmentRepository itemAssignmentRepository;
 
     private final ReceiptItemRepository receiptItemRepository;
+
     private final ParticipantRepository participantRepository;
+
+    private final ReceiptImageRepository receiptImageRepository;
+
+    private final ReceiptStorageService receiptStorageService;
 
     public SessionExpirationScheduler(
             SplitSessionRepository sessionRepository,
             ItemAssignmentRepository itemAssignmentRepository,
             ReceiptItemRepository receiptItemRepository,
-            ParticipantRepository participantRepository) {
+            ParticipantRepository participantRepository,
+            ReceiptImageRepository receiptImageRepository,
+            ReceiptStorageService receiptStorageService
+    ) {
         this.sessionRepository = sessionRepository;
         this.itemAssignmentRepository = itemAssignmentRepository;
         this.receiptItemRepository = receiptItemRepository;
         this.participantRepository = participantRepository;
+        this.receiptImageRepository = receiptImageRepository;
+        this.receiptStorageService = receiptStorageService;
     }
 
     @Scheduled(fixedRate = 60 * 60 * 1000)
@@ -39,17 +51,17 @@ public class SessionExpirationScheduler {
 
         for (SplitSession session : expiredSessions) {
 
-            itemAssignmentRepository.deleteByReceiptItemSessionId(
-                    session.getId()
-            );
+            itemAssignmentRepository.deleteByReceiptItemSessionId(session.getId());
 
-            receiptItemRepository.deleteBySessionId(
-                    session.getId()
-            );
+            receiptItemRepository.deleteBySessionId(session.getId());
 
-            participantRepository.deleteBySessionId(
-                    session.getId()
-            );
+            participantRepository.deleteBySessionId(session.getId());
+
+            receiptImageRepository.findBySessionShareCode(session.getShareCode())
+                    .ifPresent(receiptImage -> {
+                        receiptStorageService.deleteFile(receiptImage.getStorageKey());
+                        receiptImageRepository.delete(receiptImage);
+                    });
 
             sessionRepository.delete(session);
         }

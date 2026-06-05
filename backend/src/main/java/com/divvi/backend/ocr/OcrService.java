@@ -22,11 +22,6 @@ import java.util.List;
 @Service
 public class OcrService {
 
-    public String extractText(Path imagePath) {
-        AnnotateImageResponse response = runTextDetection(imagePath);
-        return response.getFullTextAnnotation().getText();
-    }
-
     public List<OcrWord> extractWords(Path imagePath) {
         AnnotateImageResponse response = runTextDetection(imagePath);
 
