@@ -24,7 +24,7 @@ public class ReceiptImage {
     private String storedFilename;
 
     @Column(nullable = false)
-    private String imagePath;
+    private String storageKey;
 
     @Column(nullable = false)
     private Instant uploadedAt;
@@ -33,15 +33,16 @@ public class ReceiptImage {
     @JoinColumn(name = "session_id", nullable = false, unique = true)
     private SplitSession session;
 
+
     public ReceiptImage(
             String originalFilename,
             String storedFilename,
-            String imagePath,
+            String storageKey,
             SplitSession session
     ) {
         this.originalFilename = originalFilename;
         this.storedFilename = storedFilename;
-        this.imagePath = imagePath;
+        this.storageKey = storageKey;
         this.session = session;
         this.uploadedAt = Instant.now();
     }
