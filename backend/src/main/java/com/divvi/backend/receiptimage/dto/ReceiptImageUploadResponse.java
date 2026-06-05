@@ -7,6 +7,6 @@ import java.util.List;
 public record ReceiptImageUploadResponse(
         String originalFilename,
         String storedFilename,
-        String imagePath,
+        String storageKey,
         List<ParsedReceiptItem> items
 ) {}

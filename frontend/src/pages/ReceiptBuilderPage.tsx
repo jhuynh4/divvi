@@ -62,9 +62,6 @@ function ReceiptBuilderPage() {
     const [tax, setTax] = useState<string | null>(null);
     const [tip, setTip] = useState<string | null>(null);
 
-    const receiptImageUrl =
-        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view`;
-
     const sessionQuery = useQuery({
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
@@ -76,6 +73,9 @@ function ReceiptBuilderPage() {
         enabled: Boolean(shareCode),
         retry: false,
     });
+
+    const receiptImageUrl =
+        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view?v=${receiptImageQuery.data?.storageKey}`;
 
     const hasReceiptImage = Boolean(receiptImageQuery.data);
 
