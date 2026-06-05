@@ -6,10 +6,12 @@ import com.divvi.backend.ocr.OcrUsageRepository;
 import com.divvi.backend.ocr.ReceiptParserService;
 import com.divvi.backend.receiptimage.dto.ReceiptImageResponse;
 import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
+import com.divvi.backend.receiptitem.ReceiptItemRepository;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.core.io.FileSystemResource;
@@ -35,6 +37,8 @@ public class ReceiptImageService{
 
     private final ReceiptImageRepository receiptImageRepository;
 
+    private final ReceiptItemRepository receiptItemRepository;
+
     private static final int MAX_OCR_ATTEMPTS_PER_SESSION = 3;
     private static final int MONTHLY_OCR_LIMIT = 900;
 
@@ -43,13 +47,15 @@ public class ReceiptImageService{
             OcrService ocrService,
             ReceiptParserService receiptParserService,
             OcrUsageRepository ocrUsageRepository,
-            ReceiptImageRepository receiptImageRepository
+            ReceiptImageRepository receiptImageRepository,
+            ReceiptItemRepository receiptItemRepository
     ){
         this.sessionRepository = sessionRepository;
         this.ocrService = ocrService;
         this.receiptParserService = receiptParserService;
         this.ocrUsageRepository = ocrUsageRepository;
         this.receiptImageRepository = receiptImageRepository;
+        this.receiptItemRepository = receiptItemRepository;
     }
 
     private OcrUsage getCurrentMonthUsage() {
@@ -65,6 +71,7 @@ public class ReceiptImageService{
                 });
     }
 
+    @Transactional
     public ReceiptImageUploadResponse uploadReceiptImage(
             String shareCode,
             MultipartFile file
@@ -122,6 +129,8 @@ public class ReceiptImageService{
                         }
 
                         receiptImageRepository.delete(existingReceiptImage);
+                        receiptImageRepository.flush();
+                        receiptItemRepository.deleteBySessionId(session.getId());
                     });
 
             ReceiptImage receiptImage = new ReceiptImage(
