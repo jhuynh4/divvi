@@ -9,12 +9,12 @@ import com.divvi.backend.receiptimage.dto.ReceiptImageUploadResponse;
 import com.divvi.backend.receiptitem.ReceiptItemRepository;
 import com.divvi.backend.session.SplitSession;
 import com.divvi.backend.session.SplitSessionRepository;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -39,6 +39,8 @@ public class ReceiptImageService{
 
     private final ReceiptItemRepository receiptItemRepository;
 
+    private final ReceiptStorageService receiptStorageService;
+
     private static final int MAX_OCR_ATTEMPTS_PER_SESSION = 3;
     private static final int MONTHLY_OCR_LIMIT = 900;
 
@@ -48,7 +50,8 @@ public class ReceiptImageService{
             ReceiptParserService receiptParserService,
             OcrUsageRepository ocrUsageRepository,
             ReceiptImageRepository receiptImageRepository,
-            ReceiptItemRepository receiptItemRepository
+            ReceiptItemRepository receiptItemRepository,
+            ReceiptStorageService receiptStorageService
     ){
         this.sessionRepository = sessionRepository;
         this.ocrService = ocrService;
@@ -56,6 +59,7 @@ public class ReceiptImageService{
         this.ocrUsageRepository = ocrUsageRepository;
         this.receiptImageRepository = receiptImageRepository;
         this.receiptItemRepository = receiptItemRepository;
+        this.receiptStorageService = receiptStorageService;
     }
 
     private OcrUsage getCurrentMonthUsage() {
@@ -83,23 +87,24 @@ public class ReceiptImageService{
                         "Session not found"
                 ));
 
-
         if (file.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Receipt Image is required"
+                    "Receipt image is required"
             );
         }
 
         long maxFileSize = 5 * 1024 * 1024;
+
         if (file.getSize() > maxFileSize) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY,
+                    HttpStatus.BAD_REQUEST,
                     "Receipt image must be smaller than 5MB"
             );
         }
 
         String contentType = file.getContentType();
+
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -107,58 +112,54 @@ public class ReceiptImageService{
             );
         }
 
+        if (session.getOcrAttemptCount() >= MAX_OCR_ATTEMPTS_PER_SESSION) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "You've reached the receipt scan limit for this session."
+            );
+        }
+
+        OcrUsage usage = getCurrentMonthUsage();
+
+        if (usage.getRequestCount() >= MONTHLY_OCR_LIMIT) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Receipt scanning is temporarily unavailable. Please enter items manually."
+            );
+        }
+
+        String originalFileName = file.getOriginalFilename();
+        String storedFileName = UUID.randomUUID() + "-" + originalFileName;
+        String storageKey = "receipts/" + shareCode + "/" + storedFileName;
+
+        Path tempFile = null;
+
         try {
-            Path uploadDir = Path.of("uploads", "receipts");
-
-            Files.createDirectories(uploadDir);
-            String originalFileName = file.getOriginalFilename();
-            String storedFileName = UUID.randomUUID() + "-" + originalFileName;
-
-            Path storedPath = uploadDir.resolve(storedFileName);
-            Files.copy(file.getInputStream(), storedPath);
+            receiptStorageService.uploadFile(storageKey, file);
 
             receiptImageRepository.findBySessionShareCode(shareCode)
                     .ifPresent(existingReceiptImage -> {
-                        try {
-                            Files.deleteIfExists(Path.of(existingReceiptImage.getImagePath()));
-                        } catch (IOException e) {
-                            throw new ResponseStatusException(
-                                    HttpStatus.INTERNAL_SERVER_ERROR,
-                                    "Failed to replace existing receipt image"
-                            );
-                        }
+                        receiptStorageService.deleteFile(existingReceiptImage.getStorageKey());
 
                         receiptImageRepository.delete(existingReceiptImage);
                         receiptImageRepository.flush();
+
                         receiptItemRepository.deleteBySessionId(session.getId());
                     });
 
             ReceiptImage receiptImage = new ReceiptImage(
                     originalFileName,
                     storedFileName,
-                    storedPath.toString(),
+                    storageKey,
                     session
             );
+
             receiptImageRepository.save(receiptImage);
 
+            tempFile = Files.createTempFile("receipt-", "-" + storedFileName);
+            file.transferTo(tempFile);
 
-            if (session.getOcrAttemptCount() >= MAX_OCR_ATTEMPTS_PER_SESSION) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "You've reached the receipt scan limit for this session."
-                );
-            }
-
-            OcrUsage usage = getCurrentMonthUsage();
-
-            if (usage.getRequestCount() >= MONTHLY_OCR_LIMIT) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Receipt scanning is temporarily unavailable. Please enter items manually."
-                );
-            }
-
-            var words = ocrService.extractWords(storedPath);
+            var words = ocrService.extractWords(tempFile);
             var items = receiptParserService.parseItemsFromWords(words);
 
             session.setOcrAttemptCount(session.getOcrAttemptCount() + 1);
@@ -170,15 +171,21 @@ public class ReceiptImageService{
             return new ReceiptImageUploadResponse(
                     originalFileName,
                     storedFileName,
-                    storedPath.toString(),
+                    storageKey,
                     items
             );
-
         } catch (IOException e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to store receipt image"
             );
+        } finally {
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 
@@ -192,7 +199,7 @@ public class ReceiptImageService{
 
         return new ReceiptImageResponse(
                 receiptImage.getOriginalFilename(),
-                receiptImage.getImagePath()
+                receiptImage.getStorageKey()
         );
     }
 
@@ -204,6 +211,18 @@ public class ReceiptImageService{
                         "Receipt image not found"
                 ));
 
-        return new FileSystemResource(receiptImage.getImagePath());
+        try {
+            byte[] imageBytes =
+                    receiptStorageService.downloadFile(
+                            receiptImage.getStorageKey()
+                    );
+
+            return new ByteArrayResource(imageBytes);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to load receipt image"
+            );
+        }
     }
 }

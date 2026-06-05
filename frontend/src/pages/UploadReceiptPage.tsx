@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams} from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     Box,
     Container,
@@ -34,6 +34,7 @@ interface ParsedReceiptItem {
 function UploadReceiptPage() {
     const { shareCode } = useParams<{ shareCode: string }>();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -51,7 +52,9 @@ function UploadReceiptPage() {
 
     const persistedReceiptImage =
         receiptImageQuery.data && shareCode
-            ? getReceiptImageViewUrl(shareCode)
+            ? `${getReceiptImageViewUrl(shareCode)}?v=${encodeURIComponent(
+                receiptImageQuery.data.storageKey
+            )}`
             : null;
 
     const imageToDisplay = selectedImage ?? persistedReceiptImage;
@@ -80,6 +83,14 @@ function UploadReceiptPage() {
 
         try {
             const result = await uploadReceiptImage(shareCode, selectedFile);
+
+            await queryClient.invalidateQueries({
+                queryKey: ["receiptImage", shareCode],
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ["receiptItems", shareCode],
+            });
 
             for (const item of result.items as ParsedReceiptItem[]) {
                 await createReceiptItem(shareCode, {
