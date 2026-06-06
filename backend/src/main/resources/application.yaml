@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/divvi
-    username: divvi
-    password: password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/divvi}
+    username: ${DATABASE_USERNAME:divvi}
+    password: ${DATABASE_PASSWORD:password}
 
   jpa:
     hibernate:
@@ -10,7 +10,10 @@ spring:
     show-sql: true
 
 app:
+  frontend:
+    origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+
   aws:
     s3:
-      bucket: divvi-receipts-joey
-      region: us-east-1
+      bucket: ${AWS_S3_BUCKET:divvi-receipts-joey}
+      region: ${AWS_REGION:us-east-1}
