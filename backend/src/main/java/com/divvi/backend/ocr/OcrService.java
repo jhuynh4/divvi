@@ -1,19 +1,24 @@
 package com.divvi.backend.ocr;
 
 import com.divvi.backend.ocr.dto.OcrWord;
+import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.AnnotateImageRequest;
 import com.google.cloud.vision.v1.AnnotateImageResponse;
 import com.google.cloud.vision.v1.EntityAnnotation;
 import com.google.cloud.vision.v1.Feature;
 import com.google.cloud.vision.v1.Image;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
+import com.google.cloud.vision.v1.ImageAnnotatorSettings;
 import com.google.cloud.vision.v1.Vertex;
 import com.google.protobuf.ByteString;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -81,7 +86,7 @@ public class OcrService {
                     .setImage(image)
                     .build();
 
-            try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
+            try (ImageAnnotatorClient client = createVisionClient()) {
                 List<AnnotateImageResponse> responses =
                         client.batchAnnotateImages(List.of(request))
                                 .getResponsesList();
@@ -103,5 +108,19 @@ public class OcrService {
                     "Failed to read image for OCR"
             );
         }
+    }
+
+    private ImageAnnotatorClient createVisionClient() throws IOException {
+        String credentialsJson = System.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+        if (credentialsJson != null && !credentialsJson.isBlank()) {
+            GoogleCredentials credentials = GoogleCredentials.fromStream(
+                    new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8))
+            ).createScoped("https://www.googleapis.com/auth/cloud-platform");
+            ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
+                    .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+                    .build();
+            return ImageAnnotatorClient.create(settings);
+        }
+        return ImageAnnotatorClient.create();
     }
 }
