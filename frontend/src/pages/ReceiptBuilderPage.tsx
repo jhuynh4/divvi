@@ -32,6 +32,7 @@ import {
     deleteReceiptItem,
     updateSession,
     getReceiptImage,
+    getReceiptImageViewUrl,
 } from "../api/sessionApi";
 import {ApiError} from "../api/ApiError.ts";
 import { ReceiptViewerModal } from "../features/session/components/ReceiptViewerModal";
@@ -75,7 +76,7 @@ function ReceiptBuilderPage() {
     });
 
     const receiptImageUrl =
-        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view?v=${receiptImageQuery.data?.storageKey}`;
+        `${getReceiptImageViewUrl(shareCode)}?v=${receiptImageQuery.data?.storageKey}`;
 
     const hasReceiptImage = Boolean(receiptImageQuery.data);
 
