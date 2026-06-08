@@ -76,7 +76,7 @@ function ReceiptBuilderPage() {
     });
 
     const receiptImageUrl =
-        `${getReceiptImageViewUrl(shareCode)}?v=${receiptImageQuery.data?.storageKey}`;
+        shareCode ? `${getReceiptImageViewUrl(shareCode)}?v=${receiptImageQuery.data?.storageKey}` : "";
 
     const hasReceiptImage = Boolean(receiptImageQuery.data);
 
