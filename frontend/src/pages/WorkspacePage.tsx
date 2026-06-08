@@ -33,6 +33,7 @@ import {
     createAssignment,
     deleteAssignment,
     getReceiptImage,
+    getReceiptImageViewUrl,
 } from "../api/sessionApi";
 import {ApiError} from "../api/ApiError.ts";
 
@@ -68,8 +69,7 @@ function WorkspacePage() {
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
 
-    const receiptImageUrl =
-        `http://localhost:8080/api/sessions/${shareCode}/receipt-image/view`;
+    const receiptImageUrl = getReceiptImageViewUrl(shareCode);
     const sessionQuery = useQuery({
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
