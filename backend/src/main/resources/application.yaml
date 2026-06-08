@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:divvi}
-    username: ${PGUSER:divvi}
-    password: ${PGPASSWORD:password}
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
 
   jpa:
     hibernate:
