@@ -1,7 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -10,7 +11,6 @@ spring:
 app:
   frontend:
     origin: ${FRONTEND_ORIGIN:http://localhost:5173}
-
   aws:
     s3:
       bucket: ${AWS_S3_BUCKET:divvi-receipts-joey}
