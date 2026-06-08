@@ -10,7 +10,7 @@ spring:
 
 app:
   frontend:
-    origin: ${FRONTEND_ORIGIN:http://divvi-production.up.railway.app}
+    origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   aws:
     s3:
       bucket: ${AWS_S3_BUCKET:divvi-receipts-joey}
