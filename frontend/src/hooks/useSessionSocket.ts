@@ -13,8 +13,14 @@ export function useSessionSocket(shareCode?: string) {
     useEffect(() => {
         if (!shareCode) return;
 
+        const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
+        const wsBase = apiBase
+            .replace(/^https:\/\//, "wss://")
+            .replace(/^http:\/\//, "ws://")
+            .replace(/\/api$/, "");
+
         const client = new Client({
-            brokerURL: "ws://localhost:8080/ws",
+            brokerURL: `${wsBase}/ws`,
             reconnectDelay: 5000,
             onConnect: () => {
                 client.subscribe(`/topic/sessions/${shareCode}`, (message) => {
