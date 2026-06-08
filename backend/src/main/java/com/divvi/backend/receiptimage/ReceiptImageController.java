@@ -41,11 +41,23 @@ public class ReceiptImageController {
     public ResponseEntity<Resource> viewReceiptImage(
             @PathVariable String shareCode
     ) {
-        Resource resource =
-                receiptImageService.getReceiptImageFile(shareCode);
+        ReceiptImageResponse meta = receiptImageService.getReceiptImage(shareCode);
+        Resource resource = receiptImageService.getReceiptImageFile(shareCode);
+
+        MediaType mediaType = MediaType.IMAGE_JPEG;
+        String filename = meta.originalFilename() != null ? meta.originalFilename().toLowerCase() : "";
+        if (filename.endsWith(".png")) {
+            mediaType = MediaType.IMAGE_PNG;
+        } else if (filename.endsWith(".gif")) {
+            mediaType = MediaType.IMAGE_GIF;
+        } else if (filename.endsWith(".webp")) {
+            mediaType = MediaType.parseMediaType("image/webp");
+        } else if (filename.endsWith(".heic") || filename.endsWith(".heif")) {
+            mediaType = MediaType.parseMediaType("image/heic");
+        }
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
+                .contentType(mediaType)
                 .body(resource);
     }
 }
