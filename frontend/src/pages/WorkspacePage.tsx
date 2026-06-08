@@ -69,7 +69,7 @@ function WorkspacePage() {
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
 
-    const receiptImageUrl = getReceiptImageViewUrl(shareCode);
+    const receiptImageUrl = shareCode ? getReceiptImageViewUrl(shareCode) : "";
     const sessionQuery = useQuery({
         queryKey: ["session", shareCode],
         queryFn: () => getSession(shareCode!),
