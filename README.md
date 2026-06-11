@@ -2,6 +2,19 @@
 
 A real-time bill splitting app. Scan a receipt, assign items to participants, and instantly see who owes what — no account required.
 
+🚀 Live Demo: https://divvi-production.up.railway.app
+
+## Screenshots
+
+| | |
+|---|---|
+| **Landing page** | **Join a session** |
+| ![Landing page](docs/screenshots/landing.png) | ![Join session](docs/screenshots/join-session.png) |
+| **Receipt scan & item parsing** | **Item assignment** |
+| ![Receipt scan](docs/screenshots/receipt-scan.png) | ![Item assignment](docs/screenshots/item-assignment.png) |
+| **Live summary / totals** | **Real-time sync (multi-device)** |
+| ![Live summary](docs/screenshots/summary.png) | ![Real-time sync](docs/screenshots/realtime-sync.gif) |
+
 ## Features
 
 - **Receipt scanning** — upload a photo of your receipt and items are parsed automatically via OCR
